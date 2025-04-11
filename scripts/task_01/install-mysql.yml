@@ -1,0 +1,22 @@
+- name: Install MySQL in local Docker container
+  hosts: localhost
+  connection: docker
+  vars:
+    mysql_root_password: mypassword
+  tasks:
+  - name: Add mysql package to Alpine Linux
+    apk:
+      name: mariadb-client
+      update_cache: yes
+  - name: Start mysql service
+    service:
+      name: mariadb
+      state: started
+  - name: Secure mysql installation
+    mysql_secure_installation:
+      login_user: root
+      login_password: "{{ mysql_root_password }}"
+      remove_anonymous_users: yes
+      remove_test_database: yes
+      root_password: "{{ mysql_root_password }}"
+      update_root_password: yes
