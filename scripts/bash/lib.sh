@@ -2,6 +2,9 @@
 # Shared local-course primitives. Invoke the lab entry points; do not source them.
 set -euo pipefail
 umask 077
+# Choose the byte-oriented locale before assigning or slicing text. This keeps
+# UTF-8 bytes intact consistently in older and newer Bash implementations.
+export LC_ALL=C
 
 BASH_COURSE_REPO_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)
 readonly BASH_COURSE_REPO_ROOT
@@ -141,8 +144,7 @@ course_write_file() {
 course_json_quote() {
     # Bash variables cannot contain NUL. Other ASCII control bytes are escaped;
     # UTF-8 bytes are preserved. This is a string serializer, not a JSON parser.
-    local value result char ordinal escaped i LC_ALL
-    LC_ALL=C
+    local value result char ordinal escaped i
     value=$1
     result=''
     i=0

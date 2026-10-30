@@ -112,9 +112,11 @@ def check_behavior(course: BashCourse, temporary: Path):
     # ASCII control byte, UTF-8, trailing newlines, quotes, and backslashes.
     message = '"quote" \\ slash <html> café 雪 🐧\n\n' + "".join(chr(i) for i in range(1, 32))
     course.run(6, values={"COURSE_PORT": "9090", "COURSE_MESSAGE": message})
-    assert json.loads(course.read("lab06/app.json")) == {
+    decoded = json.loads(course.read("lab06/app.json"))
+    expected = {
         "environment": "development", "port": 9090, "message": message,
     }
+    assert decoded == expected, f"Serializer round trip mismatch: {decoded!r} != {expected!r}"
     before = course.snapshot()
     for port in ["", "0", "08080", "1024", "65536", "1e4", "-1", "1+8080", "9" * 50]:
         course.run(6, values={"COURSE_PORT": port}, reject="port must")
