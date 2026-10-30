@@ -1,0 +1,34 @@
+---
+- name: Notify handlers when configuration changes
+  hosts: sandbox
+  gather_facts: false
+  pre_tasks:
+    - name: Prepare training workspace
+      ansible.builtin.import_tasks: ../../playbooks/guard.yml
+      tags: [always]
+  tasks:
+    - name: Create lab directory
+      ansible.builtin.file:
+        path: "{{ training_root }}/lab07"
+        state: directory
+        mode: '0755'
+
+    - name: Update the configuration
+      ansible.builtin.copy:
+        content: "{{ course_message }}\n"
+        dest: "{{ training_root }}/lab07/config.txt"
+        mode: '0644'
+      notify: Record simulated reload
+
+    - name: Run pending handlers before continuing
+      ansible.builtin.meta: flush_handlers
+
+    - name: Explain handler behavior
+      ansible.builtin.debug:
+        msg: The reload receipt changes only when the configuration task notifies it.
+  handlers:
+    - name: Record simulated reload
+      ansible.builtin.copy:
+        content: "Loaded configuration: {{ course_message }}\n"
+        dest: "{{ training_root }}/lab07/reload.txt"
+        mode: '0644'

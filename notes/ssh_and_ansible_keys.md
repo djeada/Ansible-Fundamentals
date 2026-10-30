@@ -1,129 +1,69 @@
-# SSH and Ansible Keys Management
+# SSH and keys for a disposable managed host
 
-SSH keys are essential for secure and efficient authentication between Ansible control nodes and managed hosts. Using SSH keys eliminates the need for password authentication, significantly improving automation and security.
+The core labs use a local connection. This note explains the additional connection work required for an SSH-based VM exercise; none of these commands is needed for the local course.
 
-## Creating SSH Keys
+SSH authentication proves which account can connect. Host-key verification helps prove which server you reached. Ansible privilege escalation determines what that account can do after connecting. Treat these as separate decisions.
 
-SSH keys can be generated using the `ssh-keygen` command on your control machine.
+## Create a dedicated key
 
-### Key Generation Command
-
-To generate a new key pair, use:
+On the controller, choose a new filename and a passphrase. Do not overwrite an existing key.
 
 ```bash
-ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+ssh-keygen -t ed25519 -C ansible-course -f ~/.ssh/ansible_course
+ssh-add ~/.ssh/ansible_course
+ssh-copy-id -i ~/.ssh/ansible_course.pub automation@YOUR_VM_ADDRESS
+ssh -i ~/.ssh/ansible_course automation@YOUR_VM_ADDRESS
 ```
 
-Explanation of flags:
+Use a key type compatible with your environment's policy; some environments require an alternative to Ed25519. `ssh-add` requires a running SSH agent. Only the `.pub` file is installed on the VM. The private key stays on the controller and is never committed to Git.
 
-| Option | Meaning |
-|--------|---------|
-| `-t`   | Specifies the key type (RSA recommended). |
-| `-b`   | Specifies the key length in bits (4096 is secure). |
-| `-C`   | Adds a comment, typically your email address, for identification purposes. |
+Verify the VM's host-key fingerprint through a trusted channel before accepting it. `ssh-keyscan` can collect a presented key, but it does not independently authenticate that key. Keep host-key checking enabled.
 
-### Example Output
+## Configure a separate inventory
 
+```yaml
+---
+all:
+  children:
+    course_vm:
+      hosts:
+        vm01:
+          ansible_host: YOUR_VM_ADDRESS
+          ansible_user: automation
+          ansible_ssh_private_key_file: ~/.ssh/ansible_course
 ```
-Generating public/private rsa key pair.
-Enter file in which to save the key (/home/user/.ssh/id_rsa): 
-Enter passphrase (empty for no passphrase): 
-Enter same passphrase again: 
-Your identification has been saved in /home/user/.ssh/id_rsa.
-Your public key has been saved in /home/user/.ssh/id_rsa.pub.
-```
 
-Interpretation:
-- Key pair successfully created.
-- Private key: `id_rsa` (keep secure and never share).
-- Public key: `id_rsa.pub` (to distribute to managed hosts).
-
-## Adding SSH Keys to Remote Hosts
-
-Once you've generated keys, add your public key to the remote host to enable key-based authentication.
-
-### Adding Keys with `ssh-copy-id`
-
-Use the following command:
+Save it outside the course inventory, for example as `.sandbox/vm-hosts.yml` after creating that directory. Ansible uses the SSH agent when available; a private-key filename is an option, not a requirement to duplicate keys.
 
 ```bash
-ssh-copy-id user@remote_host
+ansible course_vm -i .sandbox/vm-hosts.yml --list-hosts
+ansible course_vm -i .sandbox/vm-hosts.yml -m ansible.builtin.ping
 ```
 
-Example output:
+The VM needs a suitable Python interpreter for ordinary POSIX Python modules. If automatic discovery chooses incorrectly, explicitly set `ansible_python_interpreter` to the VM's Python path. That path can differ from the controller's virtual environment.
 
-```
-/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/home/user/.ssh/id_rsa.pub"
-Number of key(s) added: 1
-```
+## Add privileges only when required
 
-Interpretation:
-- Public key successfully added to the remote host's `authorized_keys`.
+First prove an unprivileged read-only connection. Then test a narrowly scoped task with `become: true` if the VM account is authorized. `--ask-become-pass` requests the escalation password; `--ask-pass` requests the connection password. These are different credentials. Prefer agent-managed keys over storing a connection password in inventory.
 
-### Manual Key Addition (Alternative)
+Do not copy this course's `ansible_playbook_python` setting to arbitrary SSH targets: it names the controller interpreter, which may not exist remotely.
 
-You can also manually add the public key to the remote host by appending it to the `authorized_keys` file:
+## Diagnose the layer that failed
 
-```bash
-cat ~/.ssh/id_rsa.pub | ssh user@remote_host "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
-```
+| Symptom | First check |
+|---|---|
+| Name resolution or connection timeout | Address, route, port, VM status, firewall |
+| Host-key mismatch | Verify the VM identity; investigate before replacing a known key |
+| `Permission denied (publickey)` | SSH account, selected key, agent, authorized key and permissions |
+| Python module cannot execute | Target Python path and supported Python version |
+| Sudo/escalation failure | Become settings, account policy, escalation credential |
 
-## Using SSH Keys with Ansible
+Increase verbosity only as needed and inspect logs before sharing them; connection output can reveal infrastructure details. Avoid disabling host-key checking as a debugging shortcut.
 
-Ansible automatically uses SSH keys for host connections if keys are configured correctly.
+<details><summary>Self-check: should the VM receive the private key so it can authenticate Ansible?</summary>
 
-### Ansible Inventory Configuration
+No. The controller proves possession of its private key. The VM uses the corresponding authorized public key. Copying private keys increases exposure and is unnecessary for this connection.
 
-To specify the SSH key in an inventory file:
+</details>
 
-```ini
-[webservers]
-192.168.1.10 ansible_user=user ansible_ssh_private_key_file=~/.ssh/id_rsa
-```
-
-Explanation:
-- `ansible_user`: SSH username.
-- `ansible_ssh_private_key_file`: Path to your private SSH key.
-
-### Testing Connection
-
-Verify Ansible connectivity:
-
-```bash
-ansible all -m ping
-```
-
-Example output:
-
-```
-192.168.1.10 | SUCCESS => {
-    "changed": false,
-    "ping": "pong"
-}
-```
-
-Interpretation:
-- Successful SSH authentication using key-based authentication.
-
-## Visual Diagram of SSH Key Authentication
-
-```
-+---------------------+
-| Ansible Control Node|
-|  (SSH Private Key)  |
-+---------------------+
-           |
-           | SSH Connection
-           v
-+---------------------+
-|  Remote Host        |
-| (Public Key in      |
-| authorized_keys)    |
-+---------------------+
-```
-
-Explanation:
-- Control node connects to the remote host using its private SSH key.
-- The remote host authenticates the connection using the corresponding public key stored in `authorized_keys`.
-
-
+Reference: [Connection details](https://docs.ansible.com/projects/ansible/latest/inventory_guide/connection_details.html).

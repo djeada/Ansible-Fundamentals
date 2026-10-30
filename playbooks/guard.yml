@@ -1,0 +1,24 @@
+---
+- name: Restrict training runs to the repository sandbox
+  ansible.builtin.assert:
+    that:
+      - ansible_connection == 'local'
+      - training_root == ((playbook_dir ~ '/../..') | realpath) ~ '/.sandbox'
+    fail_msg: Run this course with its supplied inventory and sandbox path.
+
+- name: Inspect sandbox without following a symlink
+  ansible.builtin.stat:
+    path: "{{ training_root }}"
+    follow: false
+  register: course_sandbox
+
+- name: Reject a symlink at the sandbox root
+  ansible.builtin.assert:
+    that:
+      - not (course_sandbox.stat.islnk | default(false))
+
+- name: Create private training workspace
+  ansible.builtin.file:
+    path: "{{ training_root }}"
+    state: directory
+    mode: '0700'

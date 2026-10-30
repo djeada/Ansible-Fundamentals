@@ -1,0 +1,55 @@
+---
+- name: Restore a fixture only after verifying its stored checksum
+  hosts: sandbox
+  gather_facts: false
+  vars:
+    course_backup_id: snapshot-001
+    course_backup_root: "{{ training_root }}/projects/backup"
+  pre_tasks:
+    - name: Prepare training workspace
+      ansible.builtin.import_tasks: ../../playbooks/guard.yml
+      tags: [always]
+
+    - name: Validate snapshot inputs
+      ansible.builtin.assert:
+        that:
+          - course_backup_id is match('^[a-zA-Z0-9_-]+$')
+          - course_backup_root == training_root ~ '/projects/backup'
+  tasks:
+    - name: Read the checksum recorded at backup time
+      ansible.builtin.slurp:
+        src: "{{ course_backup_root }}/snapshots/{{ course_backup_id }}.sha256"
+      register: course_manifest
+
+    - name: Measure snapshot bytes before restoring
+      ansible.builtin.stat:
+        path: "{{ course_backup_root }}/snapshots/{{ course_backup_id }}.json"
+        checksum_algorithm: sha256
+      register: course_snapshot
+
+    - name: Reject missing or corrupted backup data
+      ansible.builtin.assert:
+        that:
+          - course_snapshot.stat.exists
+          - course_snapshot.stat.checksum | default('') == (course_manifest.content | b64decode | trim)
+        fail_msg: Snapshot integrity check failed; restore was not attempted.
+
+    - name: Restore to a separate destination
+      ansible.builtin.copy:
+        src: "{{ course_backup_root }}/snapshots/{{ course_backup_id }}.json"
+        dest: "{{ course_backup_root }}/restored.json"
+        remote_src: true
+        mode: '0600'
+
+    - name: Measure restored data
+      ansible.builtin.stat:
+        path: "{{ course_backup_root }}/restored.json"
+        checksum_algorithm: sha256
+      register: course_restored
+      when: not ansible_check_mode
+
+    - name: Verify the restored bytes
+      ansible.builtin.assert:
+        that:
+          - course_restored.stat.checksum == (course_manifest.content | b64decode | trim)
+      when: not ansible_check_mode

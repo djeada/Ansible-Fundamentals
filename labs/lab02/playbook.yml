@@ -1,0 +1,20 @@
+---
+- name: Converge a managed file
+  hosts: sandbox
+  gather_facts: false
+  pre_tasks:
+    - name: Prepare training workspace
+      ansible.builtin.import_tasks: ../../playbooks/guard.yml
+      tags: [always]
+  tasks:
+    - name: Create lab directory
+      ansible.builtin.file:
+        path: "{{ training_root }}/lab02"
+        state: directory
+        mode: '0755'
+
+    - name: Declare the desired file contents
+      ansible.builtin.copy:
+        content: "Managed by Ansible.\n"
+        dest: "{{ training_root }}/lab02/managed.txt"
+        mode: '0644'

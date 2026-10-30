@@ -1,36 +1,51 @@
-## Task 2: Ad-hoc Commands, Modules, and Inventory Organization
+# Lab 02 · Desired state, idempotence, and drift
 
-**Objectives:**
-- Explore commonly used Ansible modules (e.g., `ping`, `shell`, `package`, `service`).
-- Use Ansible ad‑hoc commands to manage multiple hosts simultaneously.
-- Organize inventory into groups and subgroups.
+Create a directory and managed file, predict a second run, and repair manual drift.
 
-**Lab Steps:**
+## Before you run
 
-1. **Ad-Hoc Package Installation:**  
-   Suppose you have a group of web servers that need `nginx`. Run:
-   ```bash
-   ansible webservers -i inventory.ini -m apt -a "name=nginx state=latest update_cache=true" --become
-   ```
-   (Use `yum` or `dnf` module if CentOS/RHEL.)
+Complete lab 01. Read [playbooks](../../notes/playbooks.md). Run commands from the repository root with `.venv` active. Open [the reference playbook](playbook.yml) after making your prediction.
 
-2. **Service Management:**  
-   Start and enable the `nginx` service:
-   ```bash
-   ansible webservers -i inventory.ini -m service -a "name=nginx state=started enabled=yes" --become
-   ```
+## Predict
 
-3. **Inventory Group Hierarchy:**  
-   Update your `inventory.ini` to have hierarchical groupings:
-   ```ini
-   [production:children]
-   webservers
+Which tasks should change on the first run? What should the second run report?
 
-   [webservers]
-   web1 ansible_host=192.168.56.101
-   web2 ansible_host=192.168.56.102
-   ```
-   Now you can target `production` as a parent group.
+## Run
 
-4. **Reflection:**  
-   Note how grouping helps scale environment management. Consider timesaving advantages of ad‑hoc commands for one‑off changes.
+```bash
+ansible-playbook labs/lab02/playbook.yml --diff
+ansible-playbook labs/lab02/playbook.yml --diff
+cat .sandbox/lab02/managed.txt
+```
+
+## Observe
+
+The file contains `Managed by Ansible.` followed by a newline. The second recap has `changed=0`, `failed=0`, and `unreachable=0`. The file mode is declared as `0644`.
+
+## Experiment
+
+Edit `.sandbox/lab02/managed.txt` in your editor to contain `manual drift`, then run:
+
+```bash
+ansible-playbook labs/lab02/playbook.yml --check --diff
+cat .sandbox/lab02/managed.txt
+ansible-playbook labs/lab02/playbook.yml --diff
+```
+
+The check predicts a repair while leaving your edit in place. The real run restores the declared contents.
+
+## Explain
+
+Idempotence applies to repeating the same desired state. Repair after drift is expected to report a change. `changed_when: false` would hide the report; it would not make an always-mutating operation idempotent.
+
+Record your predicted result, actual recap, observed artifact, and one corrected assumption. An expected-failure experiment should be recorded as a successful test of a rejected input, not hidden with `ignore_errors`.
+
+## Stretch
+
+Add a second managed file and explain how its desired content and permissions are represented.
+
+## Next
+
+[Previous lab](../lab01/README.md) · [Next lab](../lab03/README.md) · [Notes index](../../notes/README.md)
+
+Generated artifacts remain inside `.sandbox/`. To reset all course output, use the documented [cleanup command](../../README.md#reset) after saving anything you need.

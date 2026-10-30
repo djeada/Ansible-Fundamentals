@@ -1,50 +1,44 @@
-## Task 7: Writing Custom Ansible Modules (in Python)
+# Lab 07 · Handlers and deliberate reloads
 
-**Objectives:**
-- Understand how to write a custom module in Python.
-- Integrate the module into a playbook to perform a specialized operation.
-- Learn module return structures and error handling.
+Send a notification only after a relevant change and observe an explicit handler flush.
 
-**Lab Steps:**
+## Before you run
 
-1. **Create a Custom Module File:**  
-   Inside a `library/` folder in your Ansible project, create `hello_module.py`:
-   ```python
-   #!/usr/bin/python
+Complete lab 06. Read [handlers](../../notes/handlers.md). Run commands from the repository root with `.venv` active. Open [the reference playbook](playbook.yml) after making your prediction.
 
-   from ansible.module_utils.basic import AnsibleModule
+## Predict
 
-   def main():
-       module = AnsibleModule(
-           argument_spec=dict(
-               name=dict(type='str', required=True)
-           )
-       )
-       name = module.params['name']
-       message = f"Hello, {name}!"
-       module.exit_json(changed=False, msg=message)
+Does the handler run after an unchanged copy? What if two changed tasks notify the same handler?
 
-   if __name__ == '__main__':
-       main()
-   ```
+## Run
 
-2. **Use the Custom Module in a Playbook:**
-   ```yaml
-   - name: Test Custom Hello Module
-     hosts: localhost
-     tasks:
-       - name: Run Hello Module
-         hello_module:
-           name: "Ansible Learner"
-         register: hello_out
+```bash
+ansible-playbook labs/lab07/playbook.yml
+cat .sandbox/lab07/reload.txt
+ansible-playbook labs/lab07/playbook.yml
+ansible-playbook labs/lab07/playbook.yml -e '{"course_message": "new configuration"}'
+```
 
-       - debug:
-           msg: "{{ hello_out.msg }}"
-   ```
+## Observe
 
-3. **Verification:**
-   - Run the playbook and check if the custom message is printed.
-   - Adjust your module logic to handle errors or additional parameters if you wish.
+The first changed configuration triggers a `RUNNING HANDLER` section and writes the receipt. The unchanged repeat does not run that handler. A new message updates both configuration and receipt. No real service is restarted.
 
-4. **Reflection:**  
-   Summarize how custom modules can help in specialized tasks. Compare that to using built‑in modules or roles.
+## Experiment
+
+Delete only `.sandbox/lab07/reload.txt`, then repeat the same message input. The configuration is unchanged, so the handler is not notified and the receipt remains absent. Change the message to trigger it again.
+
+## Explain
+
+A handler is an event response, not a substitute for continuously maintaining every desired resource. For a real service, maintain started/enabled state with a normal task and use a handler for a configuration-triggered reload.
+
+Record your predicted result, actual recap, observed artifact, and one corrected assumption. An expected-failure experiment should be recorded as a successful test of a rejected input, not hidden with `ignore_errors`.
+
+## Stretch
+
+Add two configuration tasks notifying the same handler and observe how many times it runs before one flush.
+
+## Next
+
+[Previous lab](../lab06/README.md) · [Next lab](../lab08/README.md) · [Notes index](../../notes/README.md)
+
+Generated artifacts remain inside `.sandbox/`. To reset all course output, use the documented [cleanup command](../../README.md#reset) after saving anything you need.

@@ -1,0 +1,31 @@
+---
+- name: Handle secret variables without logging their value
+  hosts: sandbox
+  gather_facts: false
+  vars_files:
+    - vars/example.yml
+  pre_tasks:
+    - name: Prepare training workspace
+      ansible.builtin.import_tasks: ../../playbooks/guard.yml
+      tags: [always]
+  tasks:
+    - name: Validate the required token
+      ansible.builtin.assert:
+        that:
+          - course_api_token is string
+          - course_api_token | length > 0
+      no_log: true
+
+    - name: Create private lab directory
+      ansible.builtin.file:
+        path: "{{ training_root }}/lab09"
+        state: directory
+        mode: '0700'
+
+    - name: Write a private runtime credential file
+      ansible.builtin.copy:
+        content: "{{ course_api_token }}\n"
+        dest: "{{ training_root }}/lab09/token.txt"
+        mode: '0600'
+      no_log: true
+      diff: false

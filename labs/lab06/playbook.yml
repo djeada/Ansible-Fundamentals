@@ -1,0 +1,30 @@
+---
+- name: Render and validate a template
+  hosts: sandbox
+  gather_facts: false
+  vars:
+    course_port: 8080
+  pre_tasks:
+    - name: Prepare training workspace
+      ansible.builtin.import_tasks: ../../playbooks/guard.yml
+      tags: [always]
+  tasks:
+    - name: Validate the port
+      ansible.builtin.assert:
+        that:
+          - course_port is integer
+          - course_port > 1024
+          - course_port < 65536
+
+    - name: Create lab directory
+      ansible.builtin.file:
+        path: "{{ training_root }}/lab06"
+        state: directory
+        mode: '0755'
+
+    - name: Render validated JSON
+      ansible.builtin.template:
+        src: templates/app.json.j2
+        dest: "{{ training_root }}/lab06/app.json"
+        mode: '0644'
+        validate: "{{ ansible_playbook_python }} -m json.tool %s"

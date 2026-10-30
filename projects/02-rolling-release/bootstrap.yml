@@ -1,0 +1,21 @@
+---
+- name: Initialize two simulated application hosts
+  hosts: sandbox
+  gather_facts: false
+  pre_tasks:
+    - name: Prepare training workspace
+      ansible.builtin.import_tasks: ../../playbooks/guard.yml
+      tags: [always]
+  tasks:
+    - name: Create independent host state
+      ansible.builtin.file:
+        path: "{{ training_root }}/projects/rollout/{{ inventory_hostname }}"
+        state: directory
+        mode: '0755'
+
+    - name: Seed the starting release without overwriting deployments
+      ansible.builtin.copy:
+        content: "v1\n"
+        dest: "{{ training_root }}/projects/rollout/{{ inventory_hostname }}/release.txt"
+        mode: '0644'
+        force: false

@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ training_site_title | e }}</title>
+</head>
+<body>
+  <h1>{{ training_site_title | e }}</h1>
+  <p>{{ training_site_description | e }}</p>
+  <dl>
+    <dt>Environment</dt><dd>{{ course_environment | e }}</dd>
+    <dt>Managed host</dt><dd>{{ inventory_hostname | e }}</dd>
+  </dl>
+</body>
+</html>

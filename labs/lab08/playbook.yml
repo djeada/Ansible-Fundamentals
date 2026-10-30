@@ -1,0 +1,11 @@
+---
+- name: Reuse a role with explicit inputs
+  hosts: sandbox
+  gather_facts: false
+  pre_tasks:
+    - name: Prepare training workspace
+      ansible.builtin.import_tasks: ../../playbooks/guard.yml
+      tags: [always]
+  roles:
+    - role: training_site
+      training_site_title: My first reusable role

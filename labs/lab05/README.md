@@ -1,41 +1,43 @@
-## Task 5: Templates and Jinja2
+# Lab 05 · Structured loops and per-item selection
 
-**Objectives:**
-- Use Jinja2 templates to manage configuration files dynamically.
-- Render templates with Ansible variables and conditionals.
-- Deploy templated files to managed hosts.
+Loop over dictionaries, give readable labels, and select enabled items with a boolean field.
 
-**Lab Steps:**
+## Before you run
 
-1. **Create a Jinja2 Template (`templates/index.html.j2`):**
-   ```html
-   <html>
-   <head>
-     <title>Welcome to {{ inventory_hostname }}</title>
-   </head>
-   <body>
-     <h1>Hello from {{ ansible_facts['hostname'] }}!</h1>
-     <p>Your server's OS is {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}.</p>
-   </body>
-   </html>
-   ```
+Complete lab 04. Review lists and dictionaries in the [variables notes](../../notes/variables_and_facts.md). Run commands from the repository root with `.venv` active. Open [the reference playbook](playbook.yml) after making your prediction.
 
-2. **Playbook Task to Copy Template:**
-   ```yaml
-   - name: Copy custom index.html
-     template:
-       src: index.html.j2
-       dest: /var/www/html/index.html
-       owner: www-data
-       group: www-data
-       mode: '0644'
-     notify: Restart Nginx
-   ```
+## Predict
 
-3. **Verify Templating:**  
-   - Re-run your playbook and then browse to `http://<webserver_ip>:8080` (if you configured port 8080).  
-   - You should see a dynamic page with the server’s hostname and OS details.
+Will the disabled worker have a directory? Will it have a configuration file?
 
-4. **Reflection:**  
-   Note how Jinja2 helps create dynamic, environment‑specific configurations. Document potential use cases (e.g., large config files, credentials, etc.).
+## Run
 
+```bash
+ansible-playbook labs/lab05/playbook.yml
+cat .sandbox/lab05/web/service.conf
+ansible-playbook labs/lab05/playbook.yml
+```
+
+## Observe
+
+Both web and worker directories exist. Only web has `service.conf`, containing `port=8080`. The copy iteration for worker is skipped because its `enabled` field is false.
+
+## Experiment
+
+Edit the play's worker entry to `enabled: true`, run it, then set it back to false and run again. Inspect the worker directory: its old configuration remains. The conditional prevents future writes; it does not remove prior state.
+
+## Explain
+
+Absence is also desired state that needs an explicit task. If disabled means removed, add an `ansible.builtin.file` task with `state: absent` and a matching condition. A loop result has per-item records under `results`.
+
+Record your predicted result, actual recap, observed artifact, and one corrected assumption. An expected-failure experiment should be recorded as a successful test of a rejected input, not hidden with `ignore_errors`.
+
+## Stretch
+
+Implement removal for disabled configurations and verify a true → false transition without deleting the whole sandbox.
+
+## Next
+
+[Previous lab](../lab04/README.md) · [Next lab](../lab06/README.md) · [Notes index](../../notes/README.md)
+
+Generated artifacts remain inside `.sandbox/`. To reset all course output, use the documented [cleanup command](../../README.md#reset) after saving anything you need.

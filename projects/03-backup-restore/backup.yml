@@ -1,0 +1,71 @@
+---
+- name: Create an immutable fixture snapshot with a checksum manifest
+  hosts: sandbox
+  gather_facts: false
+  vars:
+    course_backup_id: snapshot-001
+    course_backup_root: "{{ training_root }}/projects/backup"
+  pre_tasks:
+    - name: Prepare training workspace
+      ansible.builtin.import_tasks: ../../playbooks/guard.yml
+      tags: [always]
+
+    - name: Validate snapshot inputs
+      ansible.builtin.assert:
+        that:
+          - course_backup_id is match('^[a-zA-Z0-9_-]+$')
+          - course_backup_root == training_root ~ '/projects/backup'
+  tasks:
+    - name: Create snapshot directory
+      ansible.builtin.file:
+        path: "{{ course_backup_root }}/snapshots"
+        state: directory
+        mode: '0700'
+
+    - name: Seed source data without replacing learner edits
+      ansible.builtin.copy:
+        src: files/source.json
+        dest: "{{ course_backup_root }}/source.json"
+        mode: '0600'
+        force: false
+
+    - name: Copy source bytes into a new snapshot only
+      ansible.builtin.copy:
+        src: "{{ course_backup_root }}/source.json"
+        dest: "{{ course_backup_root }}/snapshots/{{ course_backup_id }}.json"
+        remote_src: true
+        mode: '0600'
+        force: false
+
+    - name: Measure source data
+      ansible.builtin.stat:
+        path: "{{ course_backup_root }}/source.json"
+        checksum_algorithm: sha256
+      register: course_source
+
+    - name: Write the original checksum only once
+      ansible.builtin.copy:
+        content: "{{ course_source.stat.checksum }}\n"
+        dest: "{{ course_backup_root }}/snapshots/{{ course_backup_id }}.sha256"
+        mode: '0600'
+        force: false
+
+    - name: Measure the snapshot
+      ansible.builtin.stat:
+        path: "{{ course_backup_root }}/snapshots/{{ course_backup_id }}.json"
+        checksum_algorithm: sha256
+      register: course_snapshot
+
+    - name: Read the stored manifest
+      ansible.builtin.slurp:
+        src: "{{ course_backup_root }}/snapshots/{{ course_backup_id }}.sha256"
+      register: course_manifest
+      when: not ansible_check_mode
+
+    - name: Reject a reused identifier or damaged snapshot
+      ansible.builtin.assert:
+        that:
+          - course_source.stat.checksum == course_snapshot.stat.checksum
+          - course_snapshot.stat.checksum == (course_manifest.content | b64decode | trim)
+        fail_msg: Choose a new backup ID for changed source data; inspect damaged snapshots before restoring.
+      when: not ansible_check_mode

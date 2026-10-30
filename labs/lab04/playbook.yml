@@ -1,0 +1,27 @@
+---
+- name: Use facts and boolean conditions
+  hosts: sandbox
+  gather_facts: true
+  pre_tasks:
+    - name: Prepare training workspace
+      ansible.builtin.import_tasks: ../../playbooks/guard.yml
+      tags: [always]
+  tasks:
+    - name: Create lab directory
+      ansible.builtin.file:
+        path: "{{ training_root }}/lab04"
+        state: directory
+        mode: '0755'
+
+    - name: Record selected stable facts
+      ansible.builtin.copy:
+        content: >-
+          {{ {'system': ansible_facts['system'],
+              'architecture': ansible_facts['architecture']} | to_nice_json }}
+        dest: "{{ training_root }}/lab04/facts.json"
+        mode: '0644'
+
+    - name: Explain Linux selection
+      ansible.builtin.debug:
+        msg: This task runs only when the collected system fact is Linux.
+      when: ansible_facts['system'] == 'Linux'

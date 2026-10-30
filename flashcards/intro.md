@@ -1,318 +1,305 @@
-### 1. **Why is my ad-hoc command failing to connect to hosts?**
-This issue is common when there are connectivity, configuration, or authentication problems in the setup.
+# Retrieval practice
 
-- **Inventory Configuration:** Ensure the inventory file is accurate and the target host is reachable.
-- **SSH Key and User:** Verify that the SSH key and remote user are correctly configured.
-- **Network Issues:** Check that the target hosts are accessible and that firewalls or network policies are not blocking connections.
+Answer aloud before opening each explanation. Then run the linked lab or change one input to test your answer. These cards focus on boundaries and failure modes rather than definitions alone.
 
----
+## 01 · A ping succeeds. Is the web application healthy?
 
-### 2. **How do variable precedence rules work in Ansible?**
-Variable precedence is critical in resolving which variables are used when multiple variables are defined in different scopes.
+<details><summary>Check your answer</summary>
 
-- **Precedence Hierarchy:** Variables can be defined in inventories, playbooks, roles, or extra-vars. Extra-vars generally have the highest precedence.
-- **Override Mechanisms:** Understand that role defaults and vars are overridden by host-specific variables.
-- **Debugging:** Use the `debug` module to print out variable values, which helps identify conflicts.
+No. The builtin ping proves Python module execution through the configured connection. An HTTP/application probe tests a different contract.
 
----
+[Revisit lab 01](../labs/lab01/README.md).
 
-### 3. **How can I improve the performance of my playbook execution?**
-Optimizing playbook performance is essential when managing a large environment or numerous tasks.
+</details>
 
-- **Forks and Parallelism:** Increase the number of forks to allow parallel task execution.
-- **Fact Caching:** Use fact caching to save time on redundant fact gathering operations.
-- **Task Optimization:** Limit tasks to only the necessary hosts, and use asynchronous tasks where possible.
+## 02 · node_a and node_b both use ansible_connection: local. How many isolated machines exist?
 
----
+<details><summary>Check your answer</summary>
 
-### 4. **What is the significance of idempotency in Ansible tasks?**
-Idempotency means that running a task multiple times will yield the same result, which is central to reliable automation.
+One shared computer, with two logical inventory aliases. Separate paths avoid file collisions; aliases do not isolate processes or networking.
 
-- **Repeatable Outcomes:** Ensure tasks produce the same result no matter how many times they are executed.
-- **State Checks:** Use modules that provide built-in state checking, reducing redundant changes.
-- **Error Reduction:** Idempotent tasks decrease the risk of unintended side effects during repeated playbook runs.
+[Revisit lab 11](../labs/lab11/README.md).
 
----
+</details>
 
-### 5. **How can I securely manage credentials with Ansible?**
-Managing sensitive data securely is crucial to protecting your infrastructure.
+## 03 · The recap is green but says no hosts matched. Did configuration succeed?
 
-- **Ansible Vault:** Use Ansible Vault to encrypt sensitive variables, files, or entire playbooks.
-- **Secrets Management:** Integrate with dedicated secrets management tools like Hashicorp Vault or AWS Secrets Manager.
-- **Access Control:** Limit access to decrypted secrets via proper permissions and role-based access.
+<details><summary>Check your answer</summary>
 
----
+No selected host ran the requested work. Inspect the active inventory, play pattern, and limit.
 
-### 6. **Why are some tasks skipped during playbook execution?**
-Tasks may be skipped for several reasons, often related to conditionals or tags applied to them.
+[Revisit lab 01](../labs/lab01/README.md).
 
-- **Conditional Statements:** Use of `when` clauses can intentionally skip tasks if conditions aren’t met.
-- **Tags:** Tasks tagged incorrectly or omitted from the run can lead to skips.
-- **Delegation:** Check if tasks were delegated to hosts that might be unreachable or improperly defined.
+</details>
 
----
+## 04 · What should an unchanged second run tell you?
 
-### 7. **How do I effectively troubleshoot errors in Ansible playbooks?**
-Troubleshooting is vital to quickly resolving issues and ensuring smooth automation.
+<details><summary>Check your answer</summary>
 
-- **Verbose Output:** Run playbooks with increased verbosity (using `-v`, `-vv`, or `-vvv`) for detailed output.
-- **Log Files:** Review Ansible logs and system logs on target machines.
-- **Step-by-Step Debugging:** Use the `debug` module or `ansible-playbook --start-at-task` to isolate issues.
+It should report zero unintended changes. Independently inspect correctness; zero changes alone can also mean nothing useful ran.
 
----
+[Revisit lab 02](../labs/lab02/README.md).
 
-### 8. **What is the best practice for organizing inventories in Ansible?**
-A well-organized inventory structure can greatly impact the manageability and scalability of your automation.
+</details>
 
-- **Dynamic Inventories:** Use dynamic inventory scripts for cloud environments that change frequently.
-- **Groupings:** Organize hosts into groups based on environment, role, or location for easier management.
-- **Hierarchical Files:** Use multiple inventory files or directories to separate concerns and simplify version control.
+## 05 · A file is manually edited. Is a changed result on the next run a failure of idempotence?
 
----
+<details><summary>Check your answer</summary>
 
-### 9. **How can I effectively use Ansible roles?**
-Roles help modularize your playbooks and make them reusable, maintainable, and scalable.
+No. The starting state drifted. Repair is an expected change; a subsequent identical repeat should stabilize.
 
-- **Directory Structure:** Follow Ansible’s recommended role directory structure for tasks, handlers, defaults, vars, and meta.
-- **Encapsulation:** Encapsulate functionality in roles so they can be independently tested and reused.
-- **Dependencies:** Define role dependencies clearly in the role’s metadata to ensure correct order and loading.
+[Revisit lab 02](../labs/lab02/README.md).
 
----
+</details>
 
-### 10. **What are Ansible facts and why are they important?**
-Facts are details about remote systems collected automatically by Ansible, used to make decisions in your playbooks.
+## 06 · Why not use changed_when: false on every command?
 
-- **System Details:** Facts include hardware, network, operating system, and environment details.
-- **Dynamic Playbooks:** Use facts to make playbooks dynamic and adaptive to the target hosts.
-- **Conditional Logic:** Leverage facts in conditional statements to tailor tasks based on target host characteristics.
+<details><summary>Check your answer</summary>
 
----
+It hides reported mutations and suppresses notifications. It does not remove side effects or make the operation state-aware.
 
-### 11. **Why do variable interpolation issues occur in playbooks?**
-Variable interpolation problems can arise due to syntax issues, conflicting names, or scoping ambiguities.
+[Revisit lab 02](../labs/lab02/README.md).
 
-- **Syntax Review:** Verify that variable names are wrapped properly (e.g., `{{ variable }}`).
-- **Scope Conflicts:** Understand that the same variable name defined in different scopes may conflict, leading to unexpected values.
-- **Quotation Considerations:** Be cautious with quotes and special characters that may affect variable parsing.
+</details>
 
----
+## 07 · Does -e course_port=9090 provide an integer?
 
-### 12. **How can I integrate Ansible with other automation tools?**
-Integrating Ansible with orchestration platforms, CI/CD pipelines, or configuration management tools can enhance overall automation capabilities.
+<details><summary>Check your answer</summary>
 
-- **API and Webhooks:** Use API calls or webhooks to trigger playbooks from systems like Jenkins or GitLab CI.
-- **Configuration Management:** Combine Ansible with tools like Terraform for provisioning alongside configuration.
-- **Continuous Deployment:** Leverage Ansible in deployment pipelines to automate rollouts and updates consistently.
+No. key=value extra vars are strings. Pass typed JSON/YAML for the integer contract in lab 06.
 
-### 13. **How do I use Ansible Vault to encrypt files and variables?**
-Ansible Vault provides a secure method to store sensitive data.
+[Revisit lab 06](../labs/lab06/README.md).
 
-- **Encrypt Files:** Use `ansible-vault encrypt <file>` to securely encrypt an existing file.
-- **Editing Encrypted Files:** Modify files with `ansible-vault edit <file>` to ensure sensitive data remains protected.
-- **Integration in Playbooks:** Reference encrypted files and variables in playbooks, ensuring secure handling throughout deployments.
+</details>
 
----
+## 08 · Does ansible-inventory --host include every future play override?
 
-### 14. **What are best practices for writing and structuring playbooks?**
-Effective playbook design is key for maintainability and readability.
+<details><summary>Check your answer</summary>
 
-- **Modularity:** Break complex tasks into smaller, reusable roles or tasks.
-- **Clear Naming Conventions:** Use descriptive names for tasks, plays, and variables.
-- **YAML Linting:** Validate your YAML format to avoid syntactical errors.
-- **Version Control:** Keep playbooks under version control to track changes and foster collaboration.
+No. It shows effective inventory data. Play/task/role parameters and extra vars in a later run can change effective values.
 
----
+[Revisit lab 03](../labs/lab03/README.md).
 
-### 15. **How can I manage environment-specific configurations in Ansible?**
-Managing different environments efficiently is crucial for consistent deployments.
+</details>
 
-- **Inventory Grouping:** Separate hosts into groups (e.g., development, staging, production) to apply environment-specific variables.
-- **Variable Files:** Use group_vars or host_vars directories to store environment-specific settings.
-- **Dynamic Variables:** Employ conditionals and facts to select the appropriate configuration dynamically during playbook execution.
+## 09 · Why prefer ansible_facts["system"] over an injected top-level fact name?
 
----
+<details><summary>Check your answer</summary>
 
-### 16. **How does Ansible’s check mode work and when should I use it?**
-Check mode lets you preview changes without making modifications to your systems.
+It explicitly identifies the facts namespace and avoids depending on top-level fact injection behavior.
 
-- **Dry-Run Feature:** Execute `ansible-playbook --check <playbook.yml>` to simulate the play without applying changes.
-- **Validation Tool:** Use it to verify expected outcomes and catch errors before making irreversible updates.
-- **Testing Modules:** Confirm that modules report accurate change information by comparing check mode outputs to actual runs.
+[Revisit lab 04](../labs/lab04/README.md).
 
----
+</details>
 
-### 17. **How can I integrate Ansible with version control and CI/CD pipelines?**
-Integration with version control and CI/CD ensures consistency and continuous delivery.
+## 10 · Can a skipped registered task lack stdout?
 
-- **Repository Storage:** Store playbooks, roles, and inventories in systems like Git for version tracking.
-- **Automated Testing:** Use CI/CD tools like Jenkins, GitLab CI, or Travis CI to automatically test playbooks on code changes.
-- **Deployment Triggers:** Configure pipelines to run Ansible playbooks as part of your deployment process, ensuring environments are continuously updated.
+<details><summary>Check your answer</summary>
 
----
+Yes. The result can contain skip metadata rather than fields from a completed command. Inspect structure before indexing.
 
-### 18. **How do I handle multi-platform tasks with conditionals and facts?**
-Supporting multiple operating systems and platforms in one playbook requires careful planning.
+[Revisit lab 03](../labs/lab03/README.md).
 
-- **Conditional Execution:** Use `when` clauses to branch task execution based on OS or platform-specific facts.
-- **Fact Gathering:** Leverage gathered facts (e.g., `ansible_os_family` or `ansible_distribution`) to inform task decisions.
-- **Modular Tasks:** Separate platform-specific logic into dedicated tasks or roles to enhance clarity and reusability.
+</details>
 
----
+## 11 · Where does a loop put per-item results?
 
-### 19. **How can I create and manage dynamic inventories with Ansible?**
-Dynamic inventories are essential for environments where host IPs or details change frequently.
+<details><summary>Check your answer</summary>
 
-- **Inventory Scripts:** Use scripts or plugins to dynamically generate the list of hosts at runtime.
-- **Cloud Integration:** Many cloud platforms offer dynamic inventory plugins for services like AWS, GCP, or Azure.
-- **Configuration Management:** Keep your dynamic inventory source updated to reflect the current state of your infrastructure.
+Usually under the registered result's results list. Each item carries its own result and loop data.
 
----
+[Revisit lab 05](../labs/lab05/README.md).
 
-### 20. **How do I implement robust error handling in my playbooks?**
-Effective error handling ensures your playbooks can gracefully manage failures.
+</details>
 
-- **Block and Rescue:** Use `block`, `rescue`, and `always` directives to handle and recover from errors.
-- **Error Logging:** Implement logging within your tasks to record issues for later review.
-- **Fail Fast vs. Continue:** Decide if the playbook should abort execution on error or continue with subsequent tasks based on your use case.
+## 12 · A service is disabled in input. Why does its old config remain?
 
----
+<details><summary>Check your answer</summary>
 
-### 21. **How can I optimize parallel execution in Ansible?**
-Parallel execution can reduce the overall run time of playbooks.
+A when condition can prevent a new write without declaring absence. Add explicit removal if disabled means the configuration must be absent.
 
-- **Fork Settings:** Increase the number of forks (`-f` option) to run tasks concurrently on multiple hosts.
-- **Task Design:** Ensure tasks are independent and do not rely on sequential ordering where possible.
-- **Resource Considerations:** Monitor system resources to prevent overloading nodes with too many simultaneous tasks.
+[Revisit lab 05](../labs/lab05/README.md).
 
----
+</details>
 
-### 22. **What is the process for creating custom modules in Ansible?**
-Creating custom modules extends Ansible’s functionality to meet unique requirements.
+## 13 · Where is a Jinja template rendered?
 
-- **Language Support:** Modules can be written in any language, with Python being the most popular choice.
-- **Module Structure:** Follow Ansible’s guidelines for module arguments, return values, and error handling.
-- **Testing and Distribution:** Test your custom module locally and consider contributing it to the Ansible community if it’s broadly useful.
+<details><summary>Check your answer</summary>
 
----
+On the controller, using the target host's variable context. The destination file is then managed on the selected target.
 
-### 23. **How do I manage inter-task dependencies effectively?**
-Ensuring that tasks run in the correct order is essential for proper playbook execution.
+[Revisit lab 06](../labs/lab06/README.md).
 
-- **Task Sequencing:** Organize tasks logically so that prerequisites are completed before dependent operations.
-- **Dependencies within Roles:** Define role dependencies in the metadata files to enforce the correct loading order.
-- **Conditionals and Handlers:** Use `when` clauses and handlers to trigger tasks only when certain conditions are met or changes occur.
+</details>
 
----
+## 14 · Does a file lookup read the remote host?
 
-### 24. **How can I use handlers to reduce unnecessary operations in a playbook?**
-Handlers allow you to execute tasks only when notified by changes in other tasks.
+<details><summary>Check your answer</summary>
 
-- **Triggered Actions:** Define handlers to run tasks like restarting services only when preceding tasks report changes.
-- **Efficient Updates:** Avoid repetitive operations by consolidating changes into a single handler call.
-- **Notification Mechanism:** Use the `notify` directive in tasks so that handlers trigger only when necessary, enhancing performance and reducing downtime.
+No. A file lookup reads on the controller. Use slurp or another target-side operation for remote bytes.
 
-### 25. **What are the key differences between playbooks and roles in Ansible?**
-Understanding the distinctions between playbooks and roles helps structure your automation more effectively.
+[Revisit lab 06](../labs/lab06/README.md).
 
-- **Playbooks:** YAML files defining one or more plays; they sequence tasks, define hosts, and set overall orchestration.
-- **Roles:** Provide a modular framework to group related tasks, variables, files, and handlers into a reusable structure.
-- **Reusability & Organization:** Roles encapsulate functionality, making it easier to share and reuse code across playbooks.
+</details>
 
----
+## 15 · Why serialize JSON instead of concatenating it?
 
-### 26. **How can I use conditionals with loops in Ansible?**
-Combining conditionals with loops allows you to execute tasks based on dynamic item states.
+<details><summary>Check your answer</summary>
 
-- **Loop Directives:** Use `loop` (or `with_items`) to iterate over lists.
-- **Conditional Statements:** Combine with `when` to filter items or execute tasks only under certain conditions.
-- **Complex Filtering:** Use Jinja2 expressions within conditionals to evaluate item attributes during iteration.
+The serializer preserves types and escapes quotes, backslashes, and other string content correctly. Input and schema validation are still separate.
 
----
+[Revisit lab 06](../labs/lab06/README.md).
 
-### 27. **How do I use `include_tasks`, `import_tasks`, and `import_playbook` in Ansible?**
-Differentiating these inclusion directives is key to managing task execution and file organization.
+</details>
 
-- **`import_tasks`:** Includes tasks at playbook parse time, effectively static and ensuring tasks run as if they were written inline.
-- **`include_tasks`:** Loads tasks dynamically at runtime, allowing for conditional inclusion.
-- **`import_playbook`:** Integrates separate playbooks into one, enabling complex multi-play structures.
+## 16 · Does template.validate run through a shell?
 
----
+<details><summary>Check your answer</summary>
 
-### 28. **How do I manage remote Python interpreter versions in Ansible?**
-Selecting the correct Python interpreter is crucial, especially in heterogeneous environments.
+No. The command receives the temporary file path through %s; shell features such as pipes are not interpreted.
 
-- **Interpreter Discovery:** Ansible can auto-detect the Python interpreter, but you may need to specify one using the `ansible_python_interpreter` variable.
-- **Environment Consistency:** Ensure that remote hosts run compatible Python versions for module and library support.
-- **Customization:** Define interpreter paths in inventory variables for hosts with non-standard configurations.
+[Revisit lab 06](../labs/lab06/README.md).
 
----
+</details>
 
-### 29. **How do I write tests for Ansible roles and playbooks?**
-Testing ensures your automation remains reliable and error-free over time.
+## 17 · Two changed tasks notify one handler before a flush. How often does it run?
 
-- **Molecule:** Utilize Molecule to create, test, and verify roles in isolated environments.
-- **Testinfra:** Integrate with Testinfra to run Python-based assertions on target hosts.
-- **Continuous Integration:** Combine playbook tests with CI/CD pipelines to automate regression testing.
+<details><summary>Check your answer</summary>
 
----
+Normally once for that host at the flush. A later change after the flush can notify it again.
 
-### 30. **How do I integrate Ansible Tower/AWX with my automation environment?**
-Ansible Tower/AWX provides a graphical interface and RESTful API that extend the usability of Ansible.
+[Revisit lab 07](../labs/lab07/README.md).
 
-- **Job Scheduling:** Use Tower/AWX to schedule playbook runs and manage workflows.
-- **Centralized Management:** Benefit from role-based access control, logging, and audit trails.
-- **API Integration:** Automate Tower/AWX tasks and integrate them with other enterprise tools via its robust API.
+</details>
 
----
+## 18 · Why does deleting only the reload receipt not rerun the handler?
 
-### 31. **How can I use Jinja2 templating effectively in Ansible?**
-Jinja2 templating is at the heart of dynamic configuration in Ansible.
+<details><summary>Check your answer</summary>
 
-- **Dynamic Content:** Generate configuration files or command lines dynamically using template files.
-- **Filters and Tests:** Leverage built-in Jinja2 filters and tests to manipulate and validate data.
-- **Best Practices:** Keep templates simple, modular, and well-documented to maintain clarity and reusability.
+The trigger configuration did not change. A handler responds to a notification; it does not independently maintain every artifact.
 
----
+[Revisit lab 07](../labs/lab07/README.md).
 
-### 32. **What are some common performance pitfalls to avoid in Ansible?**
-Awareness of performance pitfalls can help optimize your playbooks and execution speed.
+</details>
 
-- **Excessive Fact Gathering:** Limit fact gathering to only what's necessary or disable it where not required.
-- **Large Inventories:** Use dynamic inventories or partition large groups to reduce overhead.
-- **Inefficient Loops:** Optimize loops by filtering or batching operations and minimizing redundant work.
+## 19 · Does a role grant SSH or sudo permissions?
 
----
+<details><summary>Check your answer</summary>
 
-### 33. **How do I utilize `delegate_to` and `run_once` effectively?**
-These directives help manage task distribution and ensure efficient execution.
+No. An Ansible role packages reusable content. Connection identity and privilege escalation are separate settings and policies.
 
-- **`delegate_to`:** Direct specific tasks to be executed on an alternative host, useful for centralizing operations like database backups.
-- **`run_once`:** Execute tasks only once despite being in a loop or on multiple hosts, reducing duplicate operations.
-- **Combined Usage:** They can be paired to centralize and optimize operations across your playbooks.
+[Revisit lab 08](../labs/lab08/README.md).
 
----
+</details>
 
-### 34. **How do I manage large inventories with Ansible?**
-Handling large inventories efficiently is critical for scalable automation.
+## 20 · Does become_user: root enable escalation?
 
-- **Dynamic Inventories:** Use scripts or inventory plugins that query your infrastructure in real time.
-- **Inventory Organization:** Group hosts logically and use host and group variables to minimize redundancy.
-- **Performance Considerations:** Break down very large inventories into smaller segments or use caching mechanisms to reduce lookup times.
+<details><summary>Check your answer</summary>
 
----
+No. become must be enabled, and the connection account must have an authorized escalation mechanism.
 
-### 35. **How does Ansible interact with RESTful APIs?**
-Ansible can seamlessly interact with RESTful APIs, enabling integration with various services.
+[Revisit lab 08](../labs/lab08/README.md).
 
-- **`uri` Module:** Use the `uri` module to perform HTTP requests (GET, POST, PUT, DELETE) against APIs.
-- **Dynamic Configuration:** Retrieve or submit data to external services during playbook execution.
-- **Error Handling:** Implement retries and error checks to manage unreliable network or API responses.
+</details>
 
----
+## 21 · Do task tags pin a role version?
 
-### 36. **What are some best practices for Ansible logging and error reporting?**
-Effective logging and error reporting are essential for troubleshooting and maintaining automation health.
+<details><summary>Check your answer</summary>
 
-- **Verbose Output:** Use increased verbosity (`-v`, `-vv`, or `-vvv`) during runs to capture detailed logs.
-- **Log Files:** Redirect output to log files for later analysis and compliance purposes.
-- **Centralized Monitoring:** Integrate with log management systems to aggregate and review logs from multiple playbook executions.
+No. Tags select execution. Dependency requirements or Git references select versions.
+
+[Revisit lab 08](../labs/lab08/README.md).
+
+</details>
+
+## 22 · Why keep ordinary public role inputs in defaults?
+
+<details><summary>Check your answer</summary>
+
+Role defaults are deliberately low precedence and easy for consumers to override. Internal high-precedence vars can make an interface unexpectedly rigid.
+
+[Revisit lab 08](../labs/lab08/README.md).
+
+</details>
+
+## 23 · Does Vault automatically protect a rendered token file?
+
+<details><summary>Check your answer</summary>
+
+No. Vault protects encrypted stored input. Runtime plaintext needs suitable permissions, output suppression, and lifecycle controls.
+
+[Revisit lab 09](../labs/lab09/README.md).
+
+</details>
+
+## 24 · Is Vault rekey the same as rotating the service token?
+
+<details><summary>Check your answer</summary>
+
+No. Rekey changes encryption credentials. Token rotation changes the credential used by the service.
+
+[Revisit lab 09](../labs/lab09/README.md).
+
+</details>
+
+## 25 · Does rescue roll back earlier tasks?
+
+<details><summary>Check your answer</summary>
+
+No. Only explicit restoration tasks can reverse earlier changes. Lab 10 avoids promotion before validation; project 02 snapshots and restores.
+
+[Revisit lab 10](../labs/lab10/README.md).
+
+</details>
+
+## 26 · Will unreachable hosts trigger ordinary block rescue?
+
+<details><summary>Check your answer</summary>
+
+No. Unreachable hosts and invalid task definitions are not ordinary failed-task recovery paths.
+
+[Revisit lab 10](../labs/lab10/README.md).
+
+</details>
+
+## 27 · Why fail after a successful rollback?
+
+<details><summary>Check your answer</summary>
+
+To preserve that deployment failed and activate the intended stop policy, rather than treating recovery as deployment success.
+
+[Revisit lab 10](../labs/lab10/README.md).
+
+</details>
+
+## 28 · With serial: 1, is run_once global?
+
+<details><summary>Check your answer</summary>
+
+No. It runs once per current batch. Design a separate global coordination step when that is the actual requirement.
+
+[Revisit lab 11](../labs/lab11/README.md).
+
+</details>
+
+## 29 · Why might check mode fail on an empty sandbox?
+
+<details><summary>Check your answer</summary>
+
+Predicted prerequisites are not created, some modules skip work, and later reads can lack files or results. Warm check mode after convergence tests a narrower claim.
+
+[Revisit lab 12](../labs/lab12/README.md).
+
+</details>
+
+## 30 · Why run verification separately from repair?
+
+<details><summary>Check your answer</summary>
+
+A repair can hide drift before inspection. Verify-only reads and assertions test whether the state is correct now without rewriting it first.
+
+[Revisit lab 12](../labs/lab12/README.md).
+
+</details>
+
+For longer scenarios, use [the debugging challenges](../exercises/README.md) and [project rubric](../CURRICULUM.md#project-assessment-rubric).
