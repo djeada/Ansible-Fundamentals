@@ -45,7 +45,7 @@ Add a list of enabled features using the JSON serializer and independently valid
 
 ## Bash alternative
 
-Run [the Bash implementation](alternative.sh) with Bash 3.2+ and standard Unix utilities. It does not require Ansible, Python, jq, or a virtual environment. Follow the [shared Bash guide](../../notes/bash_alternatives.md) for input mappings, change reporting, and boundaries. Its output is separate from the Ansible track.
+Run [the self-contained Bash implementation](alternative.sh) with Bash 3.2+ and standard Unix utilities. It does not require Ansible, Python, jq, or a virtual environment. Follow the [shared Bash guide](../../notes/bash_alternatives.md) for input mappings, change reporting, and boundaries. Its output is separate from the Ansible track.
 
 ```bash
 bash labs/lab06/alternative.sh
@@ -53,7 +53,7 @@ COURSE_PORT=9090 COURSE_MESSAGE='say "hello"' bash labs/lab06/alternative.sh
 COURSE_PORT=9090 COURSE_MESSAGE='say "hello"' bash labs/lab06/alternative.sh --check
 ```
 
-Inspect `.sandbox/bash/lab06/app.json`. Bash environment inputs are text, so the script accepts only canonical decimal ports from 1025 to 65535 before emitting a JSON number. The shared serializer escapes JSON strings, including control characters. Try `COURSE_PORT=08080` or `COURSE_PORT=65536`: both must fail before replacement. This is validation of known inputs and a known generated shape; Bash does not include a general JSON parser or Ansible’s target-side `template.validate` operation.
+Inspect `.sandbox/bash/lab06/app.json`. Bash environment inputs are text, so the script accepts only canonical decimal ports from 1025 to 65535 before emitting a JSON number. The serializer in this file escapes JSON strings, including control characters. Try `COURSE_PORT=08080` or `COURSE_PORT=65536`: both must fail before replacement. This is validation of known inputs and a known generated shape; Bash does not include a general JSON parser or Ansible’s target-side `template.validate` operation.
 
 A stable repeat reports `SUMMARY changed=0 check=false`. `--check` predicts this script’s supported changes without writing them; it is an explicitly implemented preview, not Ansible check mode. Adapt this lab’s prediction and drift experiment to the Bash artifact before comparing both implementations.
 

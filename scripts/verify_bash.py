@@ -64,10 +64,12 @@ class BashCourse:
 
 
 def check_syntax(course: BashCourse):
-    for script in sorted(course.root.glob("labs/*/alternative.sh")) + sorted(course.root.glob("scripts/bash/*.sh")):
+    scripts = sorted(course.root.glob("labs/*/alternative.sh")) + [course.root / "scripts/bash/cleanup.sh"]
+    for script in scripts:
+        assert not re.search(r"(?m)^\s*(?:source|\.)[ \t]+", script.read_text()), f"Script imports another file: {script}"
         result = subprocess.run([course.shell, "-n", str(script)], text=True, capture_output=True, timeout=10)
         assert result.returncode == 0, f"Invalid shell syntax: {script}\n{result.stderr}"
-    print("PASS syntax: all 12 alternatives and shared shell scripts", flush=True)
+    print("PASS syntax and independence: twelve self-contained alternatives and standalone cleanup", flush=True)
 
 
 def check_behavior(course: BashCourse, temporary: Path):
@@ -220,7 +222,14 @@ def main():
     with tempfile.TemporaryDirectory(prefix="bash-course-", dir=ROOT.parent) as name:
         temporary = Path(name)
         copied = temporary / "course with spaces"
-        shutil.copytree(ROOT, copied, ignore=shutil.ignore_patterns(".git", ".venv", ".sandbox", "__pycache__"))
+        # Copy only the standalone entry points. No repository helpers, templates,
+        # fixtures, inventories, or other course files are available at runtime.
+        scripts = sorted(ROOT.glob("labs/*/alternative.sh")) + [ROOT / "scripts/bash/cleanup.sh"]
+        assert len(scripts) == 13, "Expected twelve independent labs plus cleanup"
+        for script in scripts:
+            destination = copied / script.relative_to(ROOT)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(script, destination)
         tools = temporary / "unix-tools"
         tools.mkdir()
         for command in UNIX_TOOLS:

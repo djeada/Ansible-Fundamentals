@@ -42,9 +42,9 @@ Run lab 12 once, then edit its release manifest. `--tags verify` should fail bec
 
 ## Bash alternative tests
 
-`python3 scripts/verify_bash.py` is an independent standard-library test runner for the Bash track. The lab scripts themselves use Bash and standard Unix utilities. Tests restrict their PATH to those utilities, check artifacts with a separate JSON parser, and ensure previews and verification-only runs do not repair or create state. CI runs the system Bash on both Linux and macOS; ShellCheck also checks the shell sources on Linux.
+`python3 scripts/verify_bash.py` is an independent standard-library test runner for the Bash track. The lab scripts themselves use Bash and standard Unix utilities. Tests copy only the twelve standalone scripts and cleanup into an empty course layout, reject shell imports, restrict their PATH to those utilities, check artifacts with a separate JSON parser, and ensure previews and verification-only runs do not repair or create state. CI runs the system Bash on both Linux and macOS; ShellCheck also checks the shell sources on Linux.
 
-See the [Bash comparison guide](bash_alternatives.md) for the different validation and encryption boundaries. The Bash helpers are designed for local exercises, not a substitute for Ansible's complete module, inventory, and connection behavior.
+See the [Bash comparison guide](bash_alternatives.md) for the different validation and encryption boundaries. The self-contained Bash implementations are designed for local exercises, not a substitute for Ansible's complete module, inventory, and connection behavior.
 
 ## Next testing steps
 

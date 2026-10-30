@@ -39,7 +39,7 @@ Add a documented input to the role and use it from both this lab and project 01.
 
 ## Bash alternative
 
-Run [the Bash implementation](alternative.sh) with Bash 3.2+ and standard Unix utilities. It does not require Ansible, Python, jq, or a virtual environment. Follow the [shared Bash guide](../../notes/bash_alternatives.md) for input mappings, change reporting, and boundaries. Its output is separate from the Ansible track.
+Run [the self-contained Bash implementation](alternative.sh) with Bash 3.2+ and standard Unix utilities. It does not require Ansible, Python, jq, or a virtual environment. Follow the [shared Bash guide](../../notes/bash_alternatives.md) for input mappings, change reporting, and boundaries. Its output is separate from the Ansible track.
 
 ```bash
 bash labs/lab08/alternative.sh
@@ -47,7 +47,7 @@ COURSE_SITE_TITLE='My revised learning page' bash labs/lab08/alternative.sh
 COURSE_SITE_TITLE='<em>hello</em>' bash labs/lab08/alternative.sh
 ```
 
-Inspect `.sandbox/bash/lab08/index.html`. The reusable [render function](../../scripts/bash/training_site.sh) takes explicit arguments and escapes HTML text. Try an empty `COURSE_SITE_TITLE` and confirm early rejection. A sourced function provides shell reuse; Ansible role discovery, variable precedence, and handlers are not implied. Both this script and its Ansible counterpart reuse their own small interface.
+Inspect `.sandbox/bash/lab08/index.html`. The render function inside [this single script](alternative.sh) takes explicit arguments and escapes HTML text. Try an empty `COURSE_SITE_TITLE` and confirm early rejection. An in-file function provides shell reuse; Ansible role discovery, variable precedence, and handlers are not implied. The shell function and HTML rendering remain in this file; the Ansible counterpart keeps its role structure.
 
 A stable repeat reports `SUMMARY changed=0 check=false`. `--check` predicts this script’s supported changes without writing them; it is an explicitly implemented preview, not Ansible check mode. Adapt this lab’s prediction and drift experiment to the Bash artifact before comparing both implementations.
 

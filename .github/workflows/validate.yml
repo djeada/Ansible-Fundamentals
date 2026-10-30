@@ -46,6 +46,6 @@ jobs:
           python-version: '3.12'
       - name: Lint shell sources
         if: runner.os == 'Linux'
-        run: shellcheck -x labs/lab*/alternative.sh scripts/bash/*.sh
+        run: shellcheck labs/lab*/alternative.sh scripts/bash/cleanup.sh
       - name: Exercise system Bash with only standard Unix tools on PATH
         run: python scripts/verify_bash.py --bash /bin/bash

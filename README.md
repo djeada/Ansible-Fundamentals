@@ -27,7 +27,7 @@ The dependency range supports **ansible-core 2.20 and 2.21**. It deliberately ex
 
 ## Run the Bash alternatives
 
-Every lab also has an [independent Bash implementation](notes/bash_alternatives.md), using Bash 3.2+ and standard Unix utilities without Ansible, Python, or jq at runtime. Each lab guide includes commands and a comparison of the mechanisms.
+Every lab also has a [single-file Bash implementation](notes/bash_alternatives.md), using Bash 3.2+ and standard Unix utilities without Ansible, Python, or jq at runtime. Each script contains all its own functions and data, with no sourced helper files. Each lab guide includes commands and a comparison of the mechanisms.
 
 ```bash
 bash labs/lab01/alternative.sh
