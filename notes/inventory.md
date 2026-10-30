@@ -13,7 +13,7 @@ ansible-playbook labs/lab02/playbook.yml --list-hosts
 
 The supplied local inventory has one host in the `sandbox` group. Its `ansible_python_interpreter` follows `ansible_playbook_python`, keeping the local module interpreter aligned with your activated environment. `training_root` resolves to the repository's `.sandbox/` directory.
 
-A separate [simulated inventory](../inventories/simulated/hosts.yml) contains `node_a` and `node_b`. Both use a local connection. They are useful for observing per-host variables, batches, and result reporting, but they are not separate machines.
+A separate [simulated inventory](../inventories/simulated/hosts.yml) contains `node_a` and `node_b`. Both use a local connection. A separate `controller` group explicitly declares `localhost` for delegation; it is outside the play-targeted `sandbox` group. They are useful for observing per-host variables, batches, and result reporting, but they are not separate machines.
 
 ```bash
 ansible-inventory -i inventories/simulated/hosts.yml --graph

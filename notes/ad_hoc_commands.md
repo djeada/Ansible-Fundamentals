@@ -10,7 +10,7 @@ The shape is `ansible PATTERN -m MODULE -a ARGUMENTS`. Inventory and connection 
 ansible sandbox --list-hosts
 ansible sandbox -m ansible.builtin.ping
 ansible sandbox -m ansible.builtin.setup -a 'filter=ansible_system'
-ansible sandbox -m ansible.builtin.command -a 'argv=["python3", "--version"]'
+ansible sandbox -m ansible.builtin.command -a '{"argv": ["python3", "--version"]}'
 ansible-doc ansible.builtin.copy
 ansible-doc ansible.builtin.command
 ```

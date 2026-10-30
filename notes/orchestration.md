@@ -20,7 +20,7 @@ Increasing forks does not make a dependency disappear. A play with `serial: 1` s
 
 With `serial`, `run_once` runs once **per batch**. It is not automatically once for the entire play. If a workflow truly requires a global one-time step, consider a separate controller play or an explicit first-host condition and confirm it against limits, failures, and strategy.
 
-A delegated task retains the original host's task context in important ways. `inventory_hostname` continues to identify the original host; connection-related variables may be evaluated for the delegated host. Inspect which host supplies each variable instead of assuming delegation changes the whole play target.
+A delegated task retains the original host's task context in important ways. `inventory_hostname` continues to identify the original host; connection-related variables may be evaluated for the delegated host. Inspect which host supplies each variable instead of assuming delegation changes the whole play target. The simulated inventory explicitly defines its delegated `localhost` under `controller`, so inventory-based connection paths remain available there.
 
 ## Shared resources are still shared
 
