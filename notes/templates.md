@@ -1,167 +1,55 @@
-# Templates Management
+# Templates are configuration interfaces
 
-Ansible uses templates to dynamically generate files tailored to specific environments and servers. This feature leverages the powerful Jinja2 templating engine, enabling conditional logic, loops, variables, and more.
+A template turns structured inputs into text on the controller and copies the rendered result to the managed host. Use `copy` for static bytes and `template` when content depends on variables. Source template paths are controller-side; the destination is on the selected target.
 
-## Understanding Templates in Ansible
+## Expressions, statements, and comments
 
-Templates allow the creation of dynamic files by injecting variables and logic directly into files that will be deployed to target hosts. Common uses include configuration files, system files, and scripts.
+| Jinja syntax | Purpose | Example |
+|---|---|---|
+| `{{ ... }}` | Emit a value | `{{ course_environment }}` |
+| `{% ... %}` | Control rendering | `{% for service in services %}` |
+| `{# ... #}` | Template-only comment | `{# Not present in output #}` |
 
-### Jinja2 Templating Basics
+A template does not execute once per inventory host on that host. Rendering happens on the controller with the host's variable context. A `lookup('file', ...)` therefore reads a controller file; use `slurp` to read target bytes.
 
-Ansible templates utilize Jinja2 syntax, which includes variables, conditionals, loops, and filters.
+## Serialize structured formats
 
-Example Jinja2 template (`config.j2`):
+Hand-built JSON can break when an input contains quotes, backslashes, or a newline. Lab 06 lets the serializer handle those details:
 
-```jinja2
-server_name = {{ server_name }}
-port = {{ port }}
-{% if enable_ssl %}
-ssl_certificate = {{ ssl_cert_path }}
-{% endif %}
+```jinja
+{{ {'environment': course_environment, 'port': course_port, 'message': course_message} | to_nice_json }}
 ```
 
-Explanation:
-- Variables (`server_name`, `port`) are replaced by their values at runtime.
-- Conditional statements (`{% if %}`) include content based on variables.
+For an HTML page, use explicit `| e` escaping when placing input into text or attributes; the shared site role does this. Escaping for HTML, JSON, shell commands, and YAML solves different problems. A filter appropriate for one format is not a universal sanitizer.
 
-### Rendering Templates with Ansible
+## Validate before replacement
 
-Use the `template` module to render and deploy templates:
+Lab 06 uses `template.validate` to run Python's JSON parser against a temporary candidate:
 
 ```yaml
-- name: Deploy configuration from template
-  template:
-    src: config.j2
-    dest: /etc/myapp/config.conf
+# Task fragment
+- name: Render validated JSON
+  ansible.builtin.template:
+    src: templates/app.json.j2
+    dest: "{{ training_root }}/lab06/app.json"
+    mode: '0644'
+    validate: "{{ ansible_playbook_python }} -m json.tool %s"
 ```
 
-Output example:
-```
-changed: [server1]
-```
-Interpretation:
-- Indicates the template was rendered and deployed successfully.
+`%s` is replaced by the temporary candidate path. The validator runs on the target, so its executable must exist there. This Python path is appropriate for the course's local connection; choose a target executable for a remote system. Shell features such as pipes are not available in `validate`.
 
-## Variables in Templates
+Input assertions and output validation catch different defects. An integer port in range is an input contract. Valid JSON is a syntax contract. A successful HTTP request would be a runtime contract. None substitutes for the others.
 
-Variables are central to template functionality, making templates adaptable to various contexts.
+## Keep rendering deterministic
 
-### Defining Variables
+Do not embed the current time into every render unless each run is intentionally a new release. Sort unordered inputs when order is irrelevant. Document how whitespace affects the target format. A file that changes on every run causes needless handlers and obscures real drift.
 
-Variables can be defined in multiple ways, including inventory, playbooks, roles (`defaults/main.yml`), or even gathered facts from target hosts.
+Defaults are for optional inputs. For mandatory credentials or identifiers, validate presence rather than quietly rendering an empty string.
 
-Example in inventory file:
+<details><summary>Self-check: does valid JSON prove the application accepts the configuration?</summary>
 
-```
-webserver ansible_host=192.168.1.10 server_name=example.com port=80 enable_ssl=true ssl_cert_path=/etc/ssl/cert.pem
-```
+No. The parser proves JSON syntax, not the application's schema or runtime semantics. Add schema checks or an application-specific validator, then a bounded health probe where appropriate.
 
-### Accessing Variables
+</details>
 
-Variables defined are accessed within templates using double curly braces `{{ variable_name }}`.
-
-Example:
-
-```jinja2
-User={{ username }}
-UID={{ uid }}
-```
-
-## Conditionals and Logic
-
-Conditional logic allows templates to adapt dynamically based on variable values.
-
-Example conditional in Jinja2:
-
-```jinja2
-{% if user_is_admin %}
-admin=true
-{% else %}
-admin=false
-{% endif %}
-```
-
-This outputs `admin=true` if `user_is_admin` is true, otherwise it outputs `admin=false`.
-
-### Loops in Templates
-
-Loops are useful for generating repetitive sections:
-
-```jinja2
-{% for user in users %}
-User={{ user.name }}
-UID={{ user.uid }}
-
-{% endfor %}
-```
-
-## Filters and Functions
-
-Jinja2 offers built-in filters and functions for additional text processing capabilities.
-
-Example filter usage (`default` filter):
-
-```jinja2
-port={{ custom_port | default(8080) }}
-```
-
-This sets the `port` to `8080` if `custom_port` is not defined.
-
-### Mathematical Operations in Templates
-
-Jinja2 supports mathematical operations directly within templates:
-
-```jinja2
-worker_processes={{ ansible_processor_vcpus * 2 }}
-```
-
-If `ansible_processor_vcpus` is 4, the rendered value would be 8.
-
-## Advanced Template Usage
-
-Templates can incorporate complex logic, such as dynamically generated configuration files based on environment conditions or hardware resources.
-
-### Example of Advanced Template Logic
-
-```jinja2
-{% set total_memory_gb = (ansible_memtotal_mb / 1024) | round(0, 'floor') %}
-memory_limit={{ total_memory_gb * 0.75 | round }}GB
-```
-
-Explanation:
-- Calculates available memory from facts (`ansible_memtotal_mb`).
-- Allocates 75% of memory to the application, rounded to the nearest GB.
-
-## Diagram of Template Rendering Workflow
-
-```
-+--------------+
-| Variables    |
-+--------------+
-      |
-      v
-+--------------+
-| Template.j2  |
-+--------------+
-      |
-      v
-+--------------+
-| Ansible      |
-| template     |
-| module       |
-+--------------+
-      |
-      v
-+--------------+
-| Rendered File|
-+--------------+
-      |
-      v
-+--------------+
-| Target Host  |
-+--------------+
-```
-
-- Variables feed into the template.
-- The Ansible template module renders this into a usable file.
-- The rendered file is deployed to the target host.
+Practice: [lab 06](../labs/lab06/README.md), [project 01](../projects/01-learning-site/README.md). Reference: [Template module](https://docs.ansible.com/projects/ansible/latest/collections/ansible/builtin/template_module.html).

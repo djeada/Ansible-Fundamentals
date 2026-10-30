@@ -1,27 +1,59 @@
-## Task 12: Advanced Docker Projects & Final Capstone
+# Lab 12 · Verification without repair
 
-**Objectives:**
-- Combine all learned Docker concepts into a final multi-container, orchestrated project.
-- Implement Docker Compose or Docker Swarm with networking, volumes, environment variables, and user security.
-- Document and present the end-to-end setup, including CI/CD and security considerations.
+Separate configuration from observation, detect drift with tags, and run the repository checks.
 
-**Lab Steps (Example Project):**
+## Before you run
 
-1. **Requirements:**
-   - 3 services: `frontend`, `backend`, `database`.
-   - Docker Compose for local dev, Docker Swarm or similar for production.
+Complete lab 11. Read [testing](../../notes/testing.md). Run commands from the repository root with `.venv` active. Open [the reference playbook](playbook.yml) after making your prediction.
 
-2. **Compose/Swarm Deployment:**
-   - Write a `docker-compose.yml` (or a Swarm stack file `stack.yml`) that defines each service.
-   - Connect them on a shared network, storing data in volumes, and passing sensitive credentials securely.
+## Predict
 
-3. **CI/CD Integration (Optional):**
-   - Configure your CI pipeline to build and test each service’s Docker image.
-   - Push to a private registry, then automate deployment on success.
+Can a successful copy prove the application contract? Will a verify-only run fix a corrupt file?
 
-4. **Documentation & Presentation:**
-   - Provide a short readme or presentation explaining how containers communicate, how data is persisted, how scaling is achieved, and how logs are collected.
+## Run
 
-5. **Reflection:**  
-   - Record your performance benchmarks (time to build, memory usage, etc.).  
-   - Note lessons learned: image optimization, network design, debugging strategies, and real-world production readiness.
+```bash
+ansible-playbook labs/lab12/playbook.yml
+ansible-playbook labs/lab12/playbook.yml --tags verify
+ansible-playbook labs/lab12/playbook.yml --check --diff
+python scripts/check_content.py
+python scripts/verify.py --syntax-only
+```
+
+## Observe
+
+The deployed JSON declares version v1 and a boolean healthy value. Verification reads actual bytes and checks both fields. After a real converge, warm check mode predicts no changes; verification depending on newly deployed bytes is skipped in check mode.
+
+## Experiment
+
+Edit `.sandbox/lab12/release.json` to set `version` to `v9`, leaving valid JSON. Run with `--tags verify`: it must exit nonzero without repairing the file. Then run normally to repair it. Also try `-e course_expected_version=v9` to make the assertion fail without changing the declared release.
+
+## Explain
+
+Syntax, convergence, idempotence, and correctness are different claims. Verification should inspect observable state rather than merely trust the mutation result. The full suite runs in a temporary copy so experiments in your working sandbox are preserved.
+
+Record your predicted result, actual recap, observed artifact, and one corrected assumption. An expected-failure experiment should be recorded as a successful test of a rejected input, not hidden with `ignore_errors`.
+
+## Stretch
+
+Complete the three projects, then run `python scripts/verify.py` and explain one failure-path assertion from the verifier.
+
+## Bash alternative
+
+Run [the self-contained Bash implementation](alternative.sh) with Bash 3.2+ and standard Unix utilities. It does not require Ansible, Python, jq, or a virtual environment. Follow the [shared Bash guide](../../notes/bash_alternatives.md) for input mappings, change reporting, and boundaries. Its output is separate from the Ansible track.
+
+```bash
+bash labs/lab12/alternative.sh
+bash labs/lab12/alternative.sh --verify-only
+bash labs/lab12/alternative.sh --check
+```
+
+Edit `.sandbox/bash/lab12/release.json` to version v9 and run `--verify-only`: it must fail and preserve the edited file. A normal run repairs it. Verification compares the actual file against a strict canonical JSON byte contract; differently formatted but semantically equivalent JSON is also rejected. This keeps the alternative free of a JSON parser without pretending it provides semantic parsing. `COURSE_EXPECTED_VERSION=v9` changes the verification expectation; configuration still declares v1. Check mode skips post-write verification because predicted writes are not applied.
+
+A stable repeat reports `SUMMARY changed=0 check=false`. `--check` predicts this script’s supported changes without writing them; it is an explicitly implemented preview, not Ansible check mode. Adapt this lab’s prediction and drift experiment to the Bash artifact before comparing both implementations.
+
+## Next
+
+[Previous lab](../lab11/README.md) · [Project 01](../../projects/01-learning-site/README.md) · [Notes index](../../notes/README.md)
+
+Generated artifacts remain inside `.sandbox/`. To reset all course output, use the documented [cleanup command](../../README.md#reset) after saving anything you need.

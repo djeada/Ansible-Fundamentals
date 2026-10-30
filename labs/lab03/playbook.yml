@@ -1,0 +1,31 @@
+---
+- name: Inspect variables and types
+  hosts: sandbox
+  gather_facts: false
+  pre_tasks:
+    - name: Prepare training workspace
+      ansible.builtin.import_tasks: ../../playbooks/guard.yml
+      tags: [always]
+  tasks:
+    - name: Validate environment input
+      ansible.builtin.assert:
+        that:
+          - course_environment in ['development', 'staging']
+          - course_message is string
+
+    - name: Create lab directory
+      ansible.builtin.file:
+        path: "{{ training_root }}/lab03"
+        state: directory
+        mode: '0755'
+
+    - name: Render structured data
+      ansible.builtin.copy:
+        content: "{{ {'environment': course_environment, 'message': course_message} | to_nice_json }}\n"
+        dest: "{{ training_root }}/lab03/variables.json"
+        mode: '0644'
+      register: course_write
+
+    - name: Inspect the module result
+      ansible.builtin.debug:
+        msg: "File changed: {{ course_write.changed }}"

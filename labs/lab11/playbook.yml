@@ -1,0 +1,29 @@
+---
+- name: Observe serial execution on simulated hosts
+  hosts: sandbox
+  gather_facts: false
+  serial: 1
+  any_errors_fatal: true
+  vars:
+    course_release: v1
+  pre_tasks:
+    - name: Prepare training workspace
+      ansible.builtin.import_tasks: ../../playbooks/guard.yml
+      tags: [always]
+  tasks:
+    - name: Create a separate directory for each inventory host
+      ansible.builtin.file:
+        path: "{{ training_root }}/lab11/{{ inventory_hostname }}"
+        state: directory
+        mode: '0755'
+
+    - name: Deploy the same revision to this host
+      ansible.builtin.copy:
+        content: "release={{ course_release }}\n"
+        dest: "{{ training_root }}/lab11/{{ inventory_hostname }}/release.txt"
+        mode: '0644'
+
+    - name: Report this batch from the controller
+      ansible.builtin.debug:
+        msg: "Batch {{ ansible_play_batch }} completed for {{ inventory_hostname }}"
+      delegate_to: localhost

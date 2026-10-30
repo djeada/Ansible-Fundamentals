@@ -1,0 +1,7 @@
+.venv/
+.sandbox/
+__pycache__/
+*.pyc
+*.retry
+.vault-pass*
+vault.local.yml

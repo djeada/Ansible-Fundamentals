@@ -1,52 +1,56 @@
-## Task 4: Variables, Facts, and Conditionals
+# Lab 04 · Facts and boolean conditions
 
-**Objectives:**
-- Use variables in Ansible playbooks to make them dynamic.
-- Leverage Ansible facts (automatic host data) and conditionals for environment‑aware tasks.
-- Demonstrate how to store variables in group/host vars files.
+Collect selected host facts and use a boolean condition to choose behavior.
 
-**Lab Steps:**
+## Before you run
 
-1. **Group Variables File:**  
-   Create a file `group_vars/webservers.yml`:
-   ```yaml
-   server_port: 8080
-   my_nginx_package: nginx
-   ```
-   Add a variable to specify a custom port or package name.
+Complete lab 03. Read the facts and type sections in [variables](../../notes/variables_and_facts.md). Run commands from the repository root with `.venv` active. Open [the reference playbook](playbook.yml) after making your prediction.
 
-2. **Facts and Conditionals in a Playbook:**  
-   Modify your existing `web.yml` to use a variable for the package name and to conditionally run tasks based on OS family:
-   ```yaml
-   - name: Deploy Web Server
-     hosts: webservers
-     become: true
-     tasks:
-       - name: Install Web Server
-         package:
-           name: "{{ my_nginx_package }}"
-           state: present
-         when: ansible_facts['os_family'] == "Debian"
+## Predict
 
-       - name: Ensure correct port is in Nginx config
-         lineinfile:
-           path: /etc/nginx/sites-available/default
-           regexp: 'listen\s+'
-           line: "listen {{ server_port }};"
-         notify: Restart Nginx
-   ```
-   (Use a `notify` to trigger a handler.)
+Why can a fact-based condition fail if fact gathering is disabled? Should a stable file include the current time?
 
-3. **Handlers:**  
-   At the end of your playbook:
-   ```yaml
-   handlers:
-     - name: Restart Nginx
-       service:
-         name: nginx
-         state: restarted
-   ```
+## Run
 
-4. **Reflection:**
-   Discuss how variables and conditionals increase reusability. Mention best practices for variables (e.g., storing secrets in Ansible Vault, which you’ll explore later).
+```bash
+ansible-playbook labs/lab04/playbook.yml
+cat .sandbox/lab04/facts.json
+ansible-playbook labs/lab04/playbook.yml
+```
 
+## Observe
+
+The JSON records system and architecture. On Linux the explanatory task runs; on other systems it is skipped. The repeat should not rewrite the stable facts file merely because time passed.
+
+## Experiment
+
+In a disposable edit of the playbook, set `gather_facts: false` and run again. Identify the missing prerequisite, then restore `true`. Do not fix the undefined fact with an invented default that pretends to know the operating system.
+
+## Explain
+
+Facts describe the target, and `ansible_facts['system'] == 'Linux'` yields a boolean. Fact collection and inventory inputs answer different questions. Check a fact's availability and freshness before relying on it.
+
+Record your predicted result, actual recap, observed artifact, and one corrected assumption. An expected-failure experiment should be recorded as a successful test of a rejected input, not hidden with `ignore_errors`.
+
+## Stretch
+
+Add one stable fact and one conditional debug task for a platform you can explain.
+
+## Bash alternative
+
+Run [the self-contained Bash implementation](alternative.sh) with Bash 3.2+ and standard Unix utilities. It does not require Ansible, Python, jq, or a virtual environment. Follow the [shared Bash guide](../../notes/bash_alternatives.md) for input mappings, change reporting, and boundaries. Its output is separate from the Ansible track.
+
+```bash
+bash labs/lab04/alternative.sh
+bash labs/lab04/alternative.sh
+```
+
+Inspect `.sandbox/bash/lab04/facts.json`. `uname -s` and `uname -m` provide a small set of local facts, and an `if` selects Linux behavior. This is a local probe, not Ansible fact gathering or a fact cache. Keep volatile timestamps out of the managed output.
+
+A stable repeat reports `SUMMARY changed=0 check=false`. `--check` predicts this script’s supported changes without writing them; it is an explicitly implemented preview, not Ansible check mode. Adapt this lab’s prediction and drift experiment to the Bash artifact before comparing both implementations.
+
+## Next
+
+[Previous lab](../lab03/README.md) · [Next lab](../lab05/README.md) · [Notes index](../../notes/README.md)
+
+Generated artifacts remain inside `.sandbox/`. To reset all course output, use the documented [cleanup command](../../README.md#reset) after saving anything you need.

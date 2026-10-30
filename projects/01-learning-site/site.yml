@@ -1,0 +1,32 @@
+---
+- name: Publish a configuration driven learning site
+  hosts: sandbox
+  gather_facts: false
+  vars:
+    training_site_title: Infrastructure learning journal
+  pre_tasks:
+    - name: Prepare training workspace
+      ansible.builtin.import_tasks: ../../playbooks/guard.yml
+      tags: [always]
+
+    - name: Validate the environment
+      ansible.builtin.assert:
+        that:
+          - course_environment in ['development', 'staging']
+  roles:
+    - role: training_site
+      training_site_description: Configuration, verification, and recovery are part of one workflow.
+      training_site_destination: "{{ training_root }}/projects/site"
+  post_tasks:
+    - name: Read the rendered artifact
+      ansible.builtin.slurp:
+        src: "{{ training_root }}/projects/site/index.html"
+      register: course_site
+      when: not ansible_check_mode
+
+    - name: Verify the public page contract
+      ansible.builtin.assert:
+        that:
+          - "'<h1>' ~ (training_site_title | e) ~ '</h1>' in (course_site.content | b64decode)"
+          - course_environment in (course_site.content | b64decode)
+      when: not ansible_check_mode

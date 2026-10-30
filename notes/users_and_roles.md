@@ -1,226 +1,64 @@
-# Users and Roles Management
+# Users, privileges, and reusable roles
 
-Managing users and roles effectively is crucial for maintaining system security, consistency, and ease of administration across multiple servers. Ansible provides powerful mechanisms to manage users and roles, simplifying repetitive tasks across numerous machines.
+The word “role” can mean a permission in an access-control system, but an **Ansible role** is a directory of reusable automation. It is not an operating-system user, an SSH account, or a sudo permission.
 
-TODO:
+## Four identities to distinguish
 
-- WHAT ARE THOSE USERS??? WHERE FOR RUNNING PLAYBOOK?? OR WHAT?
+| Identity | Where it exists | What controls it |
+|---|---|---|
+| Controller user | Your machine, running `ansible-playbook` | Your shell session and local file permissions |
+| Connection user | Managed host, accepting SSH or another transport | `ansible_user`, connection configuration, authentication |
+| Become user | Managed host, after privilege escalation | `become`, `become_user`, escalation policy and credentials |
+| Managed account | A user resource you create or edit | A task such as `ansible.builtin.user` |
 
-## User Management with Ansible
+Setting `become_user: root` alone does not enable escalation. `become: true` enables it; the connection user still needs an authorized mechanism such as sudo. With a local connection, the controller's local account executes tasks unless escalation is explicitly enabled. The course does not enable it.
 
-Managing users includes creating, updating, and deleting users, as well as managing user privileges and group memberships.
+## User management is a system mutation
 
-### Creating Users
-
-To create a user, the `user` module in Ansible is used. Consider this command:
-
-```yaml
-- name: Create a new user
-  user:
-    name: alice
-    state: present
-    shell: /bin/bash
-    groups: sudo,developers
-```
-
-This task will:
-
-- Ensure the user `alice` exists on the target system.
-- Assign `/bin/bash` as the default shell.
-- Add `alice` to the groups `sudo` and `developers`.
-
-### Interpreting Results
-
-Example output:
-```
-changed: [server1]
-```
-Interpretation:
-- `changed`: Indicates a new user was created or updated as per the provided details.
-
-### Modifying Existing Users
-
-The same `user` module allows modifications, such as changing user groups or updating passwords:
+Illustrative task fragment for a disposable Linux VM only:
 
 ```yaml
-- name: Update user's group
-  user:
-    name: alice
-    groups: admin
-    append: yes
+- name: Add an application account to an existing group
+  ansible.builtin.user:
+    name: courseapp
+    system: true
+    create_home: false
+    groups: developers
+    append: true
+  become: true
 ```
 
-This will append `alice` to the `admin` group without removing existing group memberships.
+The group must already exist. `append: true` preserves other supplementary group memberships; without it, `groups` may replace them. Account deletion, home-directory removal, sudo policy, and password hashes need separate review. Never experiment with these tasks on your personal login account.
 
-Output example:
-```
-changed: [server1]
-```
-Interpretation:
-- Confirms changes were made to group memberships for `alice`.
+## A role exposes an interface
 
-### Deleting Users
+The [training_site role](../roles/training_site/tasks/main.yml) owns one behavior: render an HTML learning page. Its defaults define inputs; its tasks validate them and render a template. Lab 08 and project 01 reuse the same role.
 
-To delete a user:
+| Role path | Purpose |
+|---|---|
+| `defaults/main.yml` | Low-precedence public input defaults |
+| `tasks/main.yml` | Main task entry point |
+| `templates/` | Jinja templates |
+| `files/` | Static assets, when needed |
+| `handlers/main.yml` | Change-triggered tasks, when needed |
+| `vars/main.yml` | Higher-precedence internal variables, used sparingly |
+| `meta/argument_specs.yml` | Optional formal argument validation |
+| `meta/main.yml` | Optional metadata and dependencies |
 
-```yaml
-- name: Remove user
-  user:
-    name: alice
-    state: absent
-    remove: yes
-```
+A small role does not need every directory. Prefer a few clear inputs prefixed with the role name, sensible defaults, and observable outputs. Put configurable values in defaults rather than using `vars/main.yml` to make them difficult to override.
 
-Output example:
-```
-changed: [server1]
-```
-Interpretation:
-- Confirms deletion of user `alice` and removal of the home directory.
+## Reuse and versioning
 
-## Role Management in Ansible
+Roles can depend on or include other roles. The question is whether the dependency is explicit, bounded, documented, and testable. Avoid hidden cross-role variables and surprising side effects. A role may be worthwhile for organization and testing even when only one current play uses it.
 
-Ansible roles are structured ways to organize playbooks. Roles simplify complex tasks by encapsulating related tasks and variables, enhancing readability and reusability.
+Task tags control selection. Git tags, release versions, or dependency requirement versions control code versions. A task tag named `v2` does not install version 2 of a role.
 
-### What are Roles?
+A collection packages roles, plugins, and modules under a namespace. The course uses only builtin modules and a repository-local role; external collections are an optional extension. Pin and review any dependency you add.
 
-Roles should be for:
+<details><summary>Self-check: does adding roles: [training_site] give the connection user more privileges?</summary>
 
-- easy re usability and prevent repeating yourself writing the same tasks over and over.
+No. It loads reusable tasks and associated resources. Privilege escalation is separately controlled by `become` and the managed system's policy.
 
-- bundling up individual tasks into 1 placeholder which later can be called from a playbook.
+</details>
 
-- roles should use tags. Why? when calling roles from other places you can point to a specific version of the role you know works whilst also promoting further development of such role.
-
-
-Roles shouldn't be:
-
-- stuff you won't need to repeat ever
-
-- tasks that could be playbooks and default role vars that could be part of an actual vars or host_vars
-
-- building blocks for other future roles. Roles should be isolated tasks for a specific use case.
-
-Simple roles don’t bother me, but roles calling other roles does. If you start with the assumption that your automation code should be tested and versioned, it becomes easier to explain limiting dependencies.
-
-A role that does a simple thing is easy to test. A role that calls two other roles is not.
-
-Putting things into roles with sensible defaults also presents a kind of API between different aspects of a system.. If you change something substantial in a play, you will have to remember to run it on all relevant hosts(and maybe even know which ones they are).. If there are dependencies between plays, you'll have to memoise them..
-
-If you change a variable name in a role however, you can find out if and where it breaks by doing a simple search, creating a role dependency tree or just by running in check mode.
-
-### Basic Structure of an Ansible Role
-
-A role typically has the following directory structure:
-
-```
-roles/
-└── my_role
-    ├── tasks
-    │   └── main.yml
-    ├── handlers
-    │   └── main.yml
-    ├── templates
-    │   └── config.j2
-    ├── files
-    └── defaults
-        └── main.yml
-```
-
-- `tasks/main.yml`: Contains the main tasks that execute when the role is invoked.
-- `handlers/main.yml`: Tasks triggered by specific conditions (e.g., service restarts).
-- `templates/`: Holds Jinja2 template files for dynamic configuration.
-- `files/`: Contains static files to copy onto target systems.
-- `defaults/main.yml`: Defines default variables for the role.
-
-### Creating and Using Roles
-
-To use a role in a playbook:
-
-```yaml
-- hosts: webservers
-  roles:
-    - my_role
-```
-
-Output example:
-
-```
-TASK [my_role : Install required packages] *********
-changed: [server1]
-```
-
-Role executed and made changes on the specified host(s).
-
-### Role Variables
-
-Roles can have variables, defined in `defaults/main.yml`, which allow dynamic configuration:
-
-```yaml
-# defaults/main.yml
-package_list:
-  - nginx
-  - php-fpm
-```
-
-Use variables in tasks:
-
-```yaml
-# tasks/main.yml
-- name: Install packages
-  apt:
-    name: "{{ package_list }}"
-    state: present
-```
-
-### Mathematical Model for Scaling Role Applications
-
-To assess the efficiency of role execution over multiple hosts, we can use a simple linear model. Let $T(n)$ represent the total time taken to run a role across $n$ servers:
-
-\[T(n) = t_{setup} + n \cdot t_{exec}\]
-
-- $t_{setup}$: Initial setup time (constant overhead).
-- $t_{exec}$: Execution time per server (average).
-
-Example:
-
-If $t_{setup} = 2\,\text{s}$ and $t_{exec} = 5\,\text{s}$, then for $n = 10$ servers:
-
-\[T(10) = 2\,\text{s} + 10 \cdot 5\,\text{s} = 52\,\text{s}\]
-
-This equation helps estimate performance and planning for large-scale role applications.
-
-### Visual Diagram of Ansible Role Execution Flow
-
-```
-+-------------+
-| Playbook    |
-+-------------+
-      |
-      v
-+-------------+
-| Role        |
-+-------------+
-      |
-      v
-+-------------+        +-----------------+
-| Tasks       |------->| Handlers        |
-+-------------+        +-----------------+
-      |
-      v
-+-------------+
-| Templates   |
-+-------------+
-      |
-      v
-+-------------+
-| Target Host |
-+-------------+
-```
-
-- The playbook invokes the role.
-- Role tasks execute in sequence.
-- Tasks may trigger handlers (conditional tasks).
-- Templates generate configuration files.
-- Results apply to the target host.
-
+Practice: [lab 08](../labs/lab08/README.md), [project 01](../projects/01-learning-site/README.md). Reference: [Roles](https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_reuse_roles.html), [privilege escalation](https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_privilege_escalation.html).

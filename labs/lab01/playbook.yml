@@ -1,0 +1,15 @@
+---
+- name: Verify the control node and inventory
+  hosts: sandbox
+  gather_facts: false
+  pre_tasks:
+    - name: Prepare training workspace
+      ansible.builtin.import_tasks: ../../playbooks/guard.yml
+      tags: [always]
+  tasks:
+    - name: Check Python module execution
+      ansible.builtin.ping:
+
+    - name: Explain the connection
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} uses {{ ansible_connection }} with {{ ansible_playbook_python }}"

@@ -1,48 +1,58 @@
-## Task 8: Dynamic Inventories with Python
+# Lab 08 · A role with a small interface
 
-**Objectives:**
-- Replace static inventory files with a Python script that dynamically generates hosts.
-- Understand dynamic inventory use cases (cloud environments, Docker containers, etc.).
-- Manage Docker containers or cloud VMs on-the-fly.
+Reuse the training_site role and distinguish its defaults, tasks, and template.
 
-**Lab Steps:**
+## Before you run
 
-1. **Create a Python Dynamic Inventory Script (`docker_inventory.py`):**
-   ```python
-   #!/usr/bin/env python3
-   import json
-   import subprocess
+Complete lab 07. Read [users, privileges, and roles](../../notes/users_and_roles.md). Run commands from the repository root with `.venv` active. Open [the reference playbook](playbook.yml) after making your prediction.
 
-   def main():
-       # Example: list running Docker containers and treat each as a host
-       # This is a simplified example; adapt to your environment
-       result = subprocess.run(["docker", "ps", "--format", "{{.Names}}"], capture_output=True, text=True)
-       container_names = result.stdout.strip().split("\n")
+## Predict
 
-       inventory = {
-           "docker_hosts": {
-               "hosts": container_names,
-               "vars": {"ansible_connection": "local"}
-           }
-       }
-       print(json.dumps(inventory))
+Where does the site title come from? Does using a role change the operating-system user?
 
-   if __name__ == "__main__":
-       main()
-   ```
-   Make it executable: `chmod +x docker_inventory.py`.
+## Run
 
-2. **Configure `ansible.cfg` to Use the Script:**
-   ```ini
-   [defaults]
-   inventory = ./docker_inventory.py
-   ```
-3. **Run Ad-Hoc Command Against the Dynamic Inventory:**
-   ```bash
-   ansible docker_hosts -m ping
-   ```
-   You should see a response for each running container.
+```bash
+ansible-playbook labs/lab08/playbook.yml
+cat .sandbox/lab08/index.html
+ansible-playbook labs/lab08/playbook.yml
+ansible-playbook labs/lab08/playbook.yml -e '{"training_site_title": "My revised learning page"}'
+```
 
-4. **Reflection:**  
-   Discuss the power of dynamic inventory for ephemeral or cloud-based infrastructure. Note how Python knowledge helps build flexible integrations.
+## Observe
 
+The HTML title and heading reflect the role input. The default run uses the role parameter in this play. An extra variable can override it. The generated file stays under `.sandbox/lab08/`.
+
+## Experiment
+
+Pass an empty title as typed JSON. The role input assertion should fail. Then pass a title containing `<em>hello</em>` and inspect the output: the value should be escaped as text rather than become markup.
+
+## Explain
+
+An Ansible role is reusable content. Its prefixed defaults form a public interface; role parameters and extra vars can override defaults. Task tags select execution and do not pin role code versions.
+
+Record your predicted result, actual recap, observed artifact, and one corrected assumption. An expected-failure experiment should be recorded as a successful test of a rejected input, not hidden with `ignore_errors`.
+
+## Stretch
+
+Add a documented input to the role and use it from both this lab and project 01.
+
+## Bash alternative
+
+Run [the self-contained Bash implementation](alternative.sh) with Bash 3.2+ and standard Unix utilities. It does not require Ansible, Python, jq, or a virtual environment. Follow the [shared Bash guide](../../notes/bash_alternatives.md) for input mappings, change reporting, and boundaries. Its output is separate from the Ansible track.
+
+```bash
+bash labs/lab08/alternative.sh
+COURSE_SITE_TITLE='My revised learning page' bash labs/lab08/alternative.sh
+COURSE_SITE_TITLE='<em>hello</em>' bash labs/lab08/alternative.sh
+```
+
+Inspect `.sandbox/bash/lab08/index.html`. The render function inside [this single script](alternative.sh) takes explicit arguments and escapes HTML text. Try an empty `COURSE_SITE_TITLE` and confirm early rejection. An in-file function provides shell reuse; Ansible role discovery, variable precedence, and handlers are not implied. The shell function and HTML rendering remain in this file; the Ansible counterpart keeps its role structure.
+
+A stable repeat reports `SUMMARY changed=0 check=false`. `--check` predicts this script’s supported changes without writing them; it is an explicitly implemented preview, not Ansible check mode. Adapt this lab’s prediction and drift experiment to the Bash artifact before comparing both implementations.
+
+## Next
+
+[Previous lab](../lab07/README.md) · [Next lab](../lab09/README.md) · [Notes index](../../notes/README.md)
+
+Generated artifacts remain inside `.sandbox/`. To reset all course output, use the documented [cleanup command](../../README.md#reset) after saving anything you need.

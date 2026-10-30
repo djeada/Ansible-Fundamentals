@@ -1,0 +1,57 @@
+---
+- name: Roll out a release with explicit rollback on health failure
+  hosts: sandbox
+  gather_facts: false
+  serial: 1
+  any_errors_fatal: true
+  vars:
+    course_release: v2
+    course_failure_host: ''
+  pre_tasks:
+    - name: Prepare training workspace
+      ansible.builtin.import_tasks: ../../playbooks/guard.yml
+      tags: [always]
+
+    - name: Validate deployment inputs
+      ansible.builtin.assert:
+        that:
+          - course_release is string
+          - course_release is match('^v[0-9]+$')
+          - course_failure_host == '' or course_failure_host in ansible_play_hosts_all
+
+    - name: Snapshot the currently deployed release
+      ansible.builtin.slurp:
+        src: "{{ training_root }}/projects/rollout/{{ inventory_hostname }}/release.txt"
+      register: course_previous
+  tasks:
+    - name: Deploy and verify one host
+      block:
+        - name: Promote the requested release
+          ansible.builtin.copy:
+            content: "{{ course_release }}\n"
+            dest: "{{ training_root }}/projects/rollout/{{ inventory_hostname }}/release.txt"
+            mode: '0644'
+
+        - name: Read the release from disk
+          ansible.builtin.slurp:
+            src: "{{ training_root }}/projects/rollout/{{ inventory_hostname }}/release.txt"
+          register: course_current
+          when: not ansible_check_mode
+
+        - name: Require the correct release and simulated healthy status
+          ansible.builtin.assert:
+            that:
+              - (course_current.content | b64decode | trim) == course_release
+              - inventory_hostname != course_failure_host
+            fail_msg: Health check rejected this release.
+          when: not ansible_check_mode
+      rescue:
+        - name: Restore the snapshot on this host
+          ansible.builtin.copy:
+            content: "{{ course_previous.content | b64decode }}"
+            dest: "{{ training_root }}/projects/rollout/{{ inventory_hostname }}/release.txt"
+            mode: '0644'
+
+        - name: Stop the rollout after restoring this host
+          ansible.builtin.fail:
+            msg: "Rolled back {{ inventory_hostname }}; later batches were not deployed."

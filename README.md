@@ -1,146 +1,109 @@
 # Ansible Fundamentals
 
-Practice-based learning materials designed to help you gain hands-on experience with Ansible. This repository contains a comprehensive collection of notes, tutorials, and automation scripts—equipping beginners, system administrators, and DevOps professionals with the knowledge to automate IT tasks, manage configurations, and deploy applications efficiently.
+Learn Ansible by predicting a change, applying it, inspecting the result, and recovering from a mistake. This repository is a practical course with explanatory notes, twelve runnable labs with Bash alternatives, and three projects with reference implementations.
 
-## Features
+The core track runs on your own machine. It uses `ansible.builtin` modules, a local connection, and generated files inside `.sandbox/`. You do not need Docker, a cloud account, SSH access, root privileges, or an external collection to complete it.
 
-- **Comprehensive Tutorials:**  
-  Step-by-step guides covering Ansible’s core concepts—from simple configuration management to complex deployment workflows.
+## Start in five minutes
 
-- **Real-World Use Cases:**  
-  Learn how to apply Ansible in production-like environments, including tasks such as copying databases between environments using API-based utility containers for PostgreSQL backups and restores.
+Use Linux, macOS, or WSL with Python **3.12–3.14** and Git. Native Windows is not a supported control node for this course. Run every command below from the repository root; Ansible discovers `ansible.cfg` there.
 
-- **Interactive Labs & Examples:**  
-  Hands-on labs provide practice with various Ansible modules, automation strategies, and integration techniques that complement your evolving IT infrastructure needs.
+```bash
+git clone https://github.com/djeada/Ansible-Fundamentals.git
+cd Ansible-Fundamentals
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+ansible --version
+ansible-inventory --graph
+ansible-playbook labs/lab01/playbook.yml
+ansible-playbook labs/lab02/playbook.yml --diff
+ansible-playbook labs/lab02/playbook.yml --diff
+```
 
-- **Extended Documentation:**  
-  Detailed notes, accompanied by code samples and practical explanations, help bridge the gap between theory and real-world application.
+The second run of lab 02 should end with `changed=0`, `failed=0`, and `unreachable=0`. Inspect `.sandbox/lab02/managed.txt`, change it by hand, and run the playbook again. That repair is configuration convergence.
 
-## Typical Use Cases of Ansible
+The dependency range supports **ansible-core 2.20 and 2.21**. It deliberately excludes the next minor release until validated. Check the [official Python support matrix](https://docs.ansible.com/projects/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-core-support-matrix) when changing versions. `ansible-core` provides the engine and builtin plugins; the larger `ansible` package also bundles community collections.
 
-Ansible is a versatile automation platform that can be leveraged across many areas of IT operations. Below is a quick rundown of some common use cases and approaches:
+## Run the Bash alternatives
 
-- **Concept:**  
-  Ansible is not only ideal for configuration management; it's also an effective tool for orchestrating complex operational tasks. Whether you’re managing deployments, handling backup and restore operations, or enforcing security policies, Ansible serves as the orchestrator for automating repetitive tasks.
+Every lab also has a [single-file Bash implementation](notes/bash_alternatives.md), using Bash 3.2+ and standard Unix utilities without Ansible, Python, or jq at runtime. Each script contains all its own functions and data, with no sourced helper files. Each lab guide includes commands and a comparison of the mechanisms.
 
-- **Common Methods:**  
-  Instead of relying on specialized modules for every specific task, you can often integrate conventional scripts and routines directly into your playbooks. This might include combining native command execution with API integrations to achieve desired outcomes.
+```bash
+bash labs/lab01/alternative.sh
+bash labs/lab02/alternative.sh --check
+bash labs/lab02/alternative.sh
+```
 
-- **Examples of Implementation:**
+Bash artifacts live separately under `.sandbox/bash/`. The alternatives explicitly implement change detection and recovery; the comparison notes identify boundaries such as Vault encryption and general JSON parsing. The developer test runner, `python3 scripts/verify_bash.py`, checks them independently on Linux and macOS in CI.
 
-  - **Configuration Management:**  
-    Use Ansible to ensure that systems are consistently configured, whether it’s managing users, installing software packages, or updating configuration files across environments.
-  
-  - **Application Deployment:**  
-    Automate deployments by orchestrating steps such as code checkouts, service restarts, and load balancer configuration—all within a single playbook.
-  
-  - **Backup and Restore Operations:**  
-    Trigger backup routines (e.g., via database dump utilities) and automate the restoration process by invoking API calls or running custom scripts as needed.
-  
-  - **Orchestration and Integration:**  
-    Combine various tasks like running scripts on remote servers, executing API requests to external services, or coordinating updates across clusters to streamline multi-step processes.
-  
-Ansible acts as the central controller, coordinating these operations to replace manual, error-prone procedures with automated, repeatable, and scalable workflows.
+## Choose a route
+
+| Your goal | Route | Evidence of progress |
+|---|---|---|
+| First contact | [Introduction](notes/intro.md), labs 01–03 | Explain a task result and override a variable |
+| Write reliable automation | Labs 04–10, then project 01 | Validate inputs, use a role, avoid unnecessary reloads |
+| Practice operations | Labs 11–12, projects 02–03 | Stop a failed rollout and reject a damaged backup |
+| Review or teach | [Curriculum](CURRICULUM.md), [flashcards](flashcards/intro.md), [debugging challenges](exercises/README.md) | Predict behavior before running commands |
+| Change this repository | [Contributor guide](CONTRIBUTING.md) | Run the same checks as CI |
 
 ## Labs
 
-| #   | Title                                                                   | Link                                                                                                                                            |
-|-----|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1   | Environment Setup, Docker Installation, and Verification                | [LAB](https://github.com/djeada/Ansible-Fundamentals/tree/main/labs/lab01)                                                                        |
-| 2   | Basic Container Operations (Run, Stop, Remove, Inspect)                 | [LAB](https://github.com/djeada/Ansible-Fundamentals/tree/main/labs/lab02)                                                                        |
-| 3   | Building Images with Dockerfiles                                        | [LAB](https://github.com/djeada/Ansible-Fundamentals/tree/main/labs/lab03)                                                                        |
-| 4   | Docker Compose for Multi-Container Applications                         | [LAB](https://github.com/djeada/Ansible-Fundamentals/tree/main/labs/lab04)                                                                        |
-| 5   | Networking in Docker (Bridged, Host, Overlay)                             | [LAB](https://github.com/djeada/Ansible-Fundamentals/tree/main/labs/lab05)                                                                        |
-| 6   | Data Persistence with Volumes and Bind Mounts                           | [LAB](https://github.com/djeada/Ansible-Fundamentals/tree/main/labs/lab06)                                                                        |
-| 7   | Docker Swarm for Container Orchestration                                | [LAB](https://github.com/djeada/Ansible-Fundamentals/tree/main/labs/lab07)                                                                        |
-| 8   | Private Registry and Image Distribution                                 | [LAB](https://github.com/djeada/Ansible-Fundamentals/tree/main/labs/lab08)                                                                        |
-| 9   | Monitoring and Logging in Docker                                        | [LAB](https://github.com/djeada/Ansible-Fundamentals/tree/main/labs/lab09)                                                                        |
-| 10  | Docker Security Best Practices                                          | [LAB](https://github.com/djeada/Ansible-Fundamentals/tree/main/labs/lab10)                                                                        |
-| 11  | Docker in CI/CD Pipelines                                               | [LAB](https://github.com/djeada/Ansible-Fundamentals/tree/main/labs/lab11)                                                                        |
-| 12  | Advanced Docker Projects & Final Capstone                               | [LAB](https://github.com/djeada/Ansible-Fundamentals/tree/main/labs/lab12)                                                                        |
+Each lab has prerequisites, a prediction prompt, exact commands, expected artifacts, a failure experiment, and an explanation of the result. Read its README before the playbook.
 
-## Prerequisites
+| Lab | Topic | Main skill |
+|---|---|---|
+| [01](labs/lab01/README.md) | Control node and inventory | Explain what `ping` actually proves |
+| [02](labs/lab02/README.md) | Desired state and files | Measure idempotence and repair drift |
+| [03](labs/lab03/README.md) | Variables and results | Override inputs and inspect `register` |
+| [04](labs/lab04/README.md) | Facts and conditions | Select behavior using boolean expressions |
+| [05](labs/lab05/README.md) | Lists, dictionaries, loops | Configure selected items without duplication |
+| [06](labs/lab06/README.md) | Jinja and validation | Reject invalid inputs before replacing a file |
+| [07](labs/lab07/README.md) | Handlers | Reload only after a relevant change |
+| [08](labs/lab08/README.md) | Roles | Reuse an interface with documented defaults |
+| [09](labs/lab09/README.md) | Vault and runtime secrets | Encrypt at rest and suppress sensitive output |
+| [10](labs/lab10/README.md) | Blocks and recovery | Distinguish rescue from rollback |
+| [11](labs/lab11/README.md) | Serial execution | Observe batches on two simulated hosts |
+| [12](labs/lab12/README.md) | Verification and CI | Detect incorrect state independently of a write |
 
-Before getting started, ensure you have the following installed and configured:
+## Projects
 
-- **Ansible:**  
-  A recent version of Ansible installed on your machine.
-  
-- **Utility Containers & APIs:**  
-  Access to any required API services or containers (for example, a PostgreSQL container exposing backup/restore APIs).
-  
-- **Additional Tools:**  
-  Git for version control, and any other dependencies needed for your custom modules or integrations.
+| Project | What you build | What you must demonstrate |
+|---|---|---|
+| [01 · Learning site](projects/01-learning-site/README.md) | An environment-specific HTML artifact using a shared role | Correct output, escaped inputs, repeatability, drift repair |
+| [02 · Rolling release](projects/02-rolling-release/README.md) | A two-host deployment simulator | Successful promotion, per-host rollback, later batches stopped |
+| [03 · Backup and restore](projects/03-backup-restore/README.md) | Immutable JSON snapshots and checksum manifests | Byte-for-byte restoration and rejection of corrupted data |
 
-## Installation
+Projects include a working reference and an open-ended brief. Attempt the brief before reading the implementation. Local aliases in project 02 share one computer: this teaches execution order and file state, not network isolation or real service availability. Project 03 uses fixture data; database consistency and PostgreSQL backup tooling are extension work.
 
-To set up your environment locally, follow these steps:
+## Notes and reference
 
-1. **Clone the Repository:**
+Begin with the [notes index](notes/README.md). Keep the [command reference](notes/cheat_sheet.md) and [troubleshooting guide](notes/troubleshooting.md) nearby. The notes connect each concept to a runnable lab and a self-check question.
 
-   ```bash
-   git clone https://github.com/yourusername/ansible-fundamentals.git
-   cd ansible-fundamentals
-   ```
+## Verify the course
 
-2. **Set Up Your Environment (Optional):**
-
-   Create and activate a virtual environment if you plan to use local Python scripts alongside Ansible:
-   
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-   ```
-
-3. **Install Dependencies:**
-
-   If there are any Python dependencies for your automation scripts, install them:
-   
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## Usage
-
-Explore the repository as follows:
-
-- **Read the Documentation:**  
-  Navigate to the `docs` folder to review detailed notes and lab instructions.
-  
-- **Execute Playbooks:**  
-  Run your Ansible playbooks from the command line to see live examples of configuration management and database operations.
-  
-- **Experiment & Innovate:**  
-  Leverage the provided sample scripts and lab exercises to extend your automation capabilities.
-
-## Repository Structure
-
-Below is an overview of the repository’s structure:
-
-```
-ansible-fundamentals/
-├── notes/                 # Detailed notes and tutorials
-├── labs/                 # Practice labs and step-by-step guides
-│   ├── lab1/             # Introduction to Ansible fundamentals
-│   ├── lab2/             # Advanced automation tasks (e.g., database copying)
-│   └── ...
-├── playbooks/            # Ansible playbooks for various tasks
-├── scripts/              # Supplementary scripts used for automation or API interactions
-├── requirements.txt      # Python dependencies (if applicable)
-├── README.md             # This file
-└── LICENSE               # License information
+```bash
+python scripts/check_content.py
+yamllint -s .
+python scripts/verify.py --syntax-only
+python scripts/verify.py
+python scripts/verify_bash.py
 ```
 
-## How to Contribute
+The full verifier works in a temporary copy of the repository. It runs the labs and projects, repeats them to check idempotence, checks warm check mode, and tests drift repair, Vault decryption, rollback, and backup corruption. It leaves your working sandbox alone. Ansible needs a normal environment that permits child processes and local sockets; highly restricted execution sandboxes may support syntax checks only. CI runs the Ansible suite on Linux for both supported core versions and the Bash suite on Linux and macOS.
 
-Contributions are welcome! If you have ideas for new labs, improvements to existing tutorials, or additional automation scripts, please follow these steps:
+## Reset
 
-1. Fork the repository.
-2. Create your feature branch (e.g., `git checkout -b feature/AmazingFeature`).
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
-4. Push to the branch (`git push origin feature/AmazingFeature`).
-5. Open a Pull Request describing your changes.
+Generated files live in `.sandbox/`, which Git ignores. The following command removes **all course output**, including your experiment files and local Vault exercises; copy anything you need first.
 
-## License
+```bash
+ansible-playbook playbooks/cleanup.yml
+```
 
-This project is licensed under the [MIT License](LICENSE) – see the LICENSE file for details.
+The course playbooks have no `become` tasks. Optional SSH and user-management examples in the notes explain how real managed systems differ and are not part of the local execution track.
+
+## Contribute and reuse
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for the learning-material standard and checks. The original misspelled `notes/palybooks.md` URL remains as a pointer to its corrected replacement. The incomplete MySQL/container task has been retired; [its migration note](scripts/task_01/README.md) explains the replacement path.
+
+Licensed under the [MIT License](LICENSE).

@@ -1,0 +1,52 @@
+---
+- name: Recover from a rejected configuration
+  hosts: sandbox
+  gather_facts: false
+  vars:
+    course_candidate_valid: false
+  pre_tasks:
+    - name: Prepare training workspace
+      ansible.builtin.import_tasks: ../../playbooks/guard.yml
+      tags: [always]
+  tasks:
+    - name: Create lab directory
+      ansible.builtin.file:
+        path: "{{ training_root }}/lab10"
+        state: directory
+        mode: '0755'
+
+    - name: Seed an initial configuration once
+      ansible.builtin.copy:
+        content: "version=1\n"
+        dest: "{{ training_root }}/lab10/live.conf"
+        mode: '0644'
+        force: false
+
+    - name: Validate before promoting a candidate
+      block:
+        - name: Reject the deliberately invalid candidate
+          ansible.builtin.assert:
+            that:
+              - course_candidate_valid
+            fail_msg: Candidate rejected before the live file was changed.
+
+        - name: Promote a valid candidate
+          ansible.builtin.copy:
+            content: "version=2\n"
+            dest: "{{ training_root }}/lab10/live.conf"
+            mode: '0644'
+      rescue:
+        - name: Explain why the previous state survived
+          ansible.builtin.debug:
+            msg: Validation failed before promotion; rescue did not roll back a write.
+      always:
+        - name: Inspect the surviving configuration
+          ansible.builtin.stat:
+            path: "{{ training_root }}/lab10/live.conf"
+          register: course_live
+
+    - name: Require a surviving live file after a real run
+      ansible.builtin.assert:
+        that:
+          - course_live.stat.exists
+      when: not ansible_check_mode

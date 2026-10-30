@@ -1,0 +1,51 @@
+---
+name: Validate learning materials
+'on':
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  course:
+    name: Python ${{ matrix.python }} / core ${{ matrix.core }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.12', '3.14']
+        core: ['2.20', '2.21']
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - name: Install supported dependencies
+        run: python -m pip install -r requirements.txt 'ansible-core==${{ matrix.core }}.*'
+      - name: Check content and local navigation
+        run: python scripts/check_content.py
+      - name: Lint YAML
+        run: yamllint -s .
+      - name: Exercise labs, projects, and failure paths
+        run: python scripts/verify.py
+  bash:
+    name: Bash alternatives / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Lint shell sources
+        if: runner.os == 'Linux'
+        run: shellcheck labs/lab*/alternative.sh scripts/bash/cleanup.sh
+      - name: Exercise system Bash with only standard Unix tools on PATH
+        run: python scripts/verify_bash.py --bash /bin/bash

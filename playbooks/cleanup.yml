@@ -1,0 +1,26 @@
+---
+- name: Remove generated course output
+  hosts: sandbox
+  gather_facts: false
+  tasks:
+    - name: Confirm the exact repository sandbox path
+      ansible.builtin.assert:
+        that:
+          - ansible_connection == 'local'
+          - training_root == ((playbook_dir ~ '/..') | realpath) ~ '/.sandbox'
+
+    - name: Inspect the sandbox root
+      ansible.builtin.stat:
+        path: "{{ training_root }}"
+        follow: false
+      register: course_sandbox
+
+    - name: Reject a symlink at the sandbox root
+      ansible.builtin.assert:
+        that:
+          - not (course_sandbox.stat.islnk | default(false))
+
+    - name: Remove generated files
+      ansible.builtin.file:
+        path: "{{ training_root }}"
+        state: absent

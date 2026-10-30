@@ -1,0 +1,31 @@
+---
+- name: Loop over structured data
+  hosts: sandbox
+  gather_facts: false
+  vars:
+    course_services:
+      - {name: web, port: 8080, enabled: true}
+      - {name: worker, port: 9090, enabled: false}
+  pre_tasks:
+    - name: Prepare training workspace
+      ansible.builtin.import_tasks: ../../playbooks/guard.yml
+      tags: [always]
+  tasks:
+    - name: Create one directory per service
+      ansible.builtin.file:
+        path: "{{ training_root }}/lab05/{{ item.name }}"
+        state: directory
+        mode: '0755'
+      loop: "{{ course_services }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Configure enabled services
+      ansible.builtin.copy:
+        content: "port={{ item.port }}\n"
+        dest: "{{ training_root }}/lab05/{{ item.name }}/service.conf"
+        mode: '0644'
+      loop: "{{ course_services }}"
+      loop_control:
+        label: "{{ item.name }}"
+      when: item.enabled

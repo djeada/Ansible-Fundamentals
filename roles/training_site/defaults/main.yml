@@ -1,0 +1,4 @@
+---
+training_site_title: Ansible learning site
+training_site_description: A page rendered from explicit role inputs.
+training_site_destination: "{{ training_root }}/lab08"

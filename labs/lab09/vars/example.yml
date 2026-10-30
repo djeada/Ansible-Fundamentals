@@ -1,0 +1,3 @@
+---
+# Deliberately public dummy value. Replace via an encrypted extra-vars file.
+course_api_token: example-not-a-secret

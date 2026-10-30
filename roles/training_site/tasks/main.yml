@@ -1,0 +1,20 @@
+---
+- name: Validate role inputs
+  ansible.builtin.assert:
+    that:
+      - training_site_title is string
+      - training_site_title | length > 0
+      - training_site_destination.startswith(training_root ~ '/')
+      - "'..' not in training_site_destination.split('/')"
+
+- name: Create the site directory
+  ansible.builtin.file:
+    path: "{{ training_site_destination }}"
+    state: directory
+    mode: '0755'
+
+- name: Render the site
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: "{{ training_site_destination }}/index.html"
+    mode: '0644'
