@@ -21,6 +21,10 @@ Run from the repository root with `.venv` active. The local inventory is the def
 | Limit simulated scope | Add `--limit node_a` to the previous command |
 | Create encrypted local vars | `ansible-vault create .sandbox/vault.local.yml` |
 | Pass encrypted local vars | `ansible-playbook labs/lab09/playbook.yml -e @.sandbox/vault.local.yml --ask-vault-pass` |
+| Run a Bash alternative | `bash labs/lab02/alternative.sh` |
+| Preview Bash changes | `bash labs/lab02/alternative.sh --check` |
+| Verify Bash behavior | `python3 scripts/verify_bash.py` |
+| Remove Bash output only | `bash scripts/bash/cleanup.sh` |
 | Run content validation | `python scripts/check_content.py` |
 | Lint YAML | `yamllint -s .` |
 | Validate all playbook syntax | `python scripts/verify.py --syntax-only` |

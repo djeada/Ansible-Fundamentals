@@ -44,6 +44,19 @@ Record your predicted result, actual recap, observed artifact, and one corrected
 
 Add a debug message that distinguishes the inventory alias from the local system hostname.
 
+## Bash alternative
+
+Run [the Bash implementation](alternative.sh) with Bash 3.2+ and standard Unix utilities. It does not require Ansible, Python, jq, or a virtual environment. Follow the [shared Bash guide](../../notes/bash_alternatives.md) for input mappings, change reporting, and boundaries. Its output is separate from the Ansible track.
+
+```bash
+bash labs/lab01/alternative.sh
+bash labs/lab01/alternative.sh --check
+```
+
+The script declares one logical local host and reports the executing Bash version. It does not parse Ansible inventory, connect through SSH, or run a Python ping module. Trace the local process instead of treating the printed success message as an application probe.
+
+A stable repeat reports `SUMMARY changed=0 check=false`. `--check` predicts this script’s supported changes without writing them; it is an explicitly implemented preview, not Ansible check mode. Adapt this lab’s prediction and drift experiment to the Bash artifact before comparing both implementations.
+
 ## Next
 
 [Course start](../../README.md) · [Next lab](../lab02/README.md) · [Notes index](../../notes/README.md)

@@ -8,6 +8,8 @@ A lab needs a concrete outcome, prerequisites, a prediction question, exact root
 
 Use fully qualified module names, named plays/tasks, typed inputs, quoted permission modes, deterministic templates, and early input assertions. Prefer state-aware modules to shell commands. Avoid secrets, real personal data, public deployment, and unbounded external dependencies in examples.
 
+A lab also needs a runnable `alternative.sh` and a Bash comparison section. Keep the shell runtime to Bash 3.2+ and the documented Unix utilities; explain narrower contracts rather than inventing JSON parsers or cryptography. Preserve `.sandbox/bash/` isolation, and add observable checks to `scripts/verify_bash.py` when behavior changes. ShellCheck is a developer check, separate from the runtime dependencies.
+
 A role should document its public inputs, defaults, supported environment, outputs, and failure behavior. Add directories only when needed. Tags select work; dependency versions belong in requirements or Git references.
 
 ## Validate a change
@@ -19,6 +21,8 @@ python scripts/check_content.py
 yamllint -s .
 python scripts/verify.py --syntax-only
 python scripts/verify.py
+python scripts/verify_bash.py
+shellcheck -x labs/lab*/alternative.sh scripts/bash/*.sh
 ```
 
 The full suite creates a temporary copy and tests observable state and meaningful failure paths. It must not delete or rewrite a learner's original sandbox. If your environment blocks local sockets/processes, run the static checks and use CI for runtime validation; state that limitation accurately in the pull request.

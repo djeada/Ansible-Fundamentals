@@ -38,6 +38,20 @@ Record your predicted result, actual recap, observed artifact, and one corrected
 
 Describe a real rolling deployment with drain, deploy, bounded health probe, and rejoin steps before attempting project 02.
 
+## Bash alternative
+
+Run [the Bash implementation](alternative.sh) with Bash 3.2+ and standard Unix utilities. It does not require Ansible, Python, jq, or a virtual environment. Follow the [shared Bash guide](../../notes/bash_alternatives.md) for input mappings, change reporting, and boundaries. Its output is separate from the Ansible track.
+
+```bash
+bash labs/lab11/alternative.sh
+COURSE_LIMIT=node_a COURSE_RELEASE=v2 bash labs/lab11/alternative.sh
+COURSE_RELEASE=v3 COURSE_FAILURE_HOST=node_a bash labs/lab11/alternative.sh
+```
+
+The last command deliberately exits nonzero before deploying node A, so node B is not processed. A plain ordered loop replaces inventory selection and `serial: 1`; each host name writes under `.sandbox/bash/lab11/`. These are two names on one computer, not SSH targets. Try failure on node B instead: node A changes first and remains changed. No earlier write is automatically rolled back. `COURSE_LIMIT` accepts one known alias, and the failure host must be selected.
+
+A stable repeat reports `SUMMARY changed=0 check=false`. `--check` predicts this script’s supported changes without writing them; it is an explicitly implemented preview, not Ansible check mode. Adapt this lab’s prediction and drift experiment to the Bash artifact before comparing both implementations.
+
 ## Next
 
 [Previous lab](../lab10/README.md) · [Next lab](../lab12/README.md) · [Notes index](../../notes/README.md)

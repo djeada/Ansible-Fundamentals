@@ -36,6 +36,20 @@ Record your predicted result, actual recap, observed artifact, and one corrected
 
 Implement removal for disabled configurations and verify a true → false transition without deleting the whole sandbox.
 
+## Bash alternative
+
+Run [the Bash implementation](alternative.sh) with Bash 3.2+ and standard Unix utilities. It does not require Ansible, Python, jq, or a virtual environment. Follow the [shared Bash guide](../../notes/bash_alternatives.md) for input mappings, change reporting, and boundaries. Its output is separate from the Ansible track.
+
+```bash
+bash labs/lab05/alternative.sh
+COURSE_WORKER_ENABLED=true bash labs/lab05/alternative.sh
+bash labs/lab05/alternative.sh
+```
+
+Inspect `.sandbox/bash/lab05/`. Indexed arrays hold names, ports, and boolean text; the loop creates each directory and copies configuration only for enabled entries. Like the Ansible reference, disabling an already configured worker retains its old file. Implement explicit removal as the same stretch exercise. Values other than exact `true` or `false` are rejected.
+
+A stable repeat reports `SUMMARY changed=0 check=false`. `--check` predicts this script’s supported changes without writing them; it is an explicitly implemented preview, not Ansible check mode. Adapt this lab’s prediction and drift experiment to the Bash artifact before comparing both implementations.
+
 ## Next
 
 [Previous lab](../lab04/README.md) · [Next lab](../lab06/README.md) · [Notes index](../../notes/README.md)

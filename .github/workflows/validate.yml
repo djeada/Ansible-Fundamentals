@@ -31,3 +31,21 @@ jobs:
         run: yamllint -s .
       - name: Exercise labs, projects, and failure paths
         run: python scripts/verify.py
+  bash:
+    name: Bash alternatives / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Lint shell sources
+        if: runner.os == 'Linux'
+        run: shellcheck -x labs/lab*/alternative.sh scripts/bash/*.sh
+      - name: Exercise system Bash with only standard Unix tools on PATH
+        run: python scripts/verify_bash.py --bash /bin/bash

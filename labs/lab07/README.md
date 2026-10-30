@@ -37,6 +37,20 @@ Record your predicted result, actual recap, observed artifact, and one corrected
 
 Add two configuration tasks notifying the same handler and observe how many times it runs before one flush.
 
+## Bash alternative
+
+Run [the Bash implementation](alternative.sh) with Bash 3.2+ and standard Unix utilities. It does not require Ansible, Python, jq, or a virtual environment. Follow the [shared Bash guide](../../notes/bash_alternatives.md) for input mappings, change reporting, and boundaries. Its output is separate from the Ansible track.
+
+```bash
+bash labs/lab07/alternative.sh
+bash labs/lab07/alternative.sh
+COURSE_MESSAGE='new configuration' bash labs/lab07/alternative.sh
+```
+
+The script explicitly branches on `COURSE_LAST_CHANGED` to write `.sandbox/bash/lab07/reload.txt` after a relevant configuration change. There is no automatic handler queue or notification deduplication. Delete only the receipt and repeat the same input: it remains absent until another configuration change triggers the branch. No real service is restarted.
+
+A stable repeat reports `SUMMARY changed=0 check=false`. `--check` predicts this script’s supported changes without writing them; it is an explicitly implemented preview, not Ansible check mode. Adapt this lab’s prediction and drift experiment to the Bash artifact before comparing both implementations.
+
 ## Next
 
 [Previous lab](../lab06/README.md) · [Next lab](../lab08/README.md) · [Notes index](../../notes/README.md)

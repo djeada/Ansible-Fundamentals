@@ -24,6 +24,12 @@ Keep a short journal with the command, prediction, recap, observed state, and on
 | Secrets and recovery | [Vault](notes/vault.md), [errors](notes/error_handling.md) | Labs 09–10 | Explain encryption at rest, output protection, and recovery limits |
 | Operations and evidence | [Orchestration](notes/orchestration.md), [testing](notes/testing.md) | Labs 11–12, projects 02–03 | Prove rollout stopping and restore integrity under failure |
 
+## Compare with Bash
+
+After an Ansible lab, run its Bash alternative using the commands in that lab's guide. Predict which responsibilities move into explicit shell code: input validation, data serialization, content/mode comparison, event handling, sequencing, and recovery. Use the [comparison guide](notes/bash_alternatives.md) to identify where a pure shell implementation has a narrower contract, such as private plaintext handling without Vault encryption.
+
+Keep the same prediction/observation/transfer journal for both tracks. Compare artifacts by meaning; paths, default learning labels, and JSON formatting differ deliberately. Bash outputs are isolated under `.sandbox/bash/`, and the scripts need no Ansible installation.
+
 ## What changes when you move to SSH hosts?
 
 The desired-state model is unchanged, but assumptions multiply. You need a real inventory, verified host keys, credentials, an appropriate target Python interpreter, and narrowly scoped privilege escalation. Package and service behavior depends on the operating system. Read [SSH and keys](notes/ssh_and_ansible_keys.md) before using an actual disposable VM.

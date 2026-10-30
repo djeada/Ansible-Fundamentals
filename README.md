@@ -1,6 +1,6 @@
 # Ansible Fundamentals
 
-Learn Ansible by predicting a change, applying it, inspecting the result, and recovering from a mistake. This repository is a practical course with explanatory notes, twelve runnable labs, and three projects with reference implementations.
+Learn Ansible by predicting a change, applying it, inspecting the result, and recovering from a mistake. This repository is a practical course with explanatory notes, twelve runnable labs with Bash alternatives, and three projects with reference implementations.
 
 The core track runs on your own machine. It uses `ansible.builtin` modules, a local connection, and generated files inside `.sandbox/`. You do not need Docker, a cloud account, SSH access, root privileges, or an external collection to complete it.
 
@@ -24,6 +24,18 @@ ansible-playbook labs/lab02/playbook.yml --diff
 The second run of lab 02 should end with `changed=0`, `failed=0`, and `unreachable=0`. Inspect `.sandbox/lab02/managed.txt`, change it by hand, and run the playbook again. That repair is configuration convergence.
 
 The dependency range supports **ansible-core 2.20 and 2.21**. It deliberately excludes the next minor release until validated. Check the [official Python support matrix](https://docs.ansible.com/projects/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-core-support-matrix) when changing versions. `ansible-core` provides the engine and builtin plugins; the larger `ansible` package also bundles community collections.
+
+## Run the Bash alternatives
+
+Every lab also has an [independent Bash implementation](notes/bash_alternatives.md), using Bash 3.2+ and standard Unix utilities without Ansible, Python, or jq at runtime. Each lab guide includes commands and a comparison of the mechanisms.
+
+```bash
+bash labs/lab01/alternative.sh
+bash labs/lab02/alternative.sh --check
+bash labs/lab02/alternative.sh
+```
+
+Bash artifacts live separately under `.sandbox/bash/`. The alternatives explicitly implement change detection and recovery; the comparison notes identify boundaries such as Vault encryption and general JSON parsing. The developer test runner, `python3 scripts/verify_bash.py`, checks them independently on Linux and macOS in CI.
 
 ## Choose a route
 
@@ -75,9 +87,10 @@ python scripts/check_content.py
 yamllint -s .
 python scripts/verify.py --syntax-only
 python scripts/verify.py
+python scripts/verify_bash.py
 ```
 
-The full verifier works in a temporary copy of the repository. It runs the labs and projects, repeats them to check idempotence, checks warm check mode, and tests drift repair, Vault decryption, rollback, and backup corruption. It leaves your working sandbox alone. Ansible needs a normal environment that permits child processes and local sockets; highly restricted execution sandboxes may support syntax checks only. CI runs the full suite on Linux for both supported core versions.
+The full verifier works in a temporary copy of the repository. It runs the labs and projects, repeats them to check idempotence, checks warm check mode, and tests drift repair, Vault decryption, rollback, and backup corruption. It leaves your working sandbox alone. Ansible needs a normal environment that permits child processes and local sockets; highly restricted execution sandboxes may support syntax checks only. CI runs the Ansible suite on Linux for both supported core versions and the Bash suite on Linux and macOS.
 
 ## Reset
 

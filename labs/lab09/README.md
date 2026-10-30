@@ -39,6 +39,22 @@ Record your predicted result, actual recap, observed artifact, and one corrected
 
 Use `ansible-vault rekey` on the dummy variable file and explain how that differs from changing the token value.
 
+## Bash alternative
+
+Run [the Bash implementation](alternative.sh) with Bash 3.2+ and standard Unix utilities. It does not require Ansible, Python, jq, or a virtual environment. Follow the [shared Bash guide](../../notes/bash_alternatives.md) for input mappings, change reporting, and boundaries. Its output is separate from the Ansible track.
+
+```bash
+bash labs/lab09/alternative.sh
+bash labs/lab09/alternative.sh --prompt
+# Enter a dummy learning token at the hidden prompt.
+# For a pipeline using public practice data only:
+printf '%s\n' 'practice-token' | bash labs/lab09/alternative.sh --token-stdin
+```
+
+Inspect the permissions of `.sandbox/bash/lab09/token.txt` without printing the value: its directory is mode 0700 and the file is mode 0600. The script disables xtrace before reading a single-line token, suppresses its value in normal output, and supports hidden terminal or standard-input entry. The committed default is a dummy value. **This alternative does not encrypt at rest.** Bash builtins do not replace Vault; use the Ansible Vault exercise or a separate established secret tool when encrypted storage is required. Do not place real tokens in command arguments, environment examples, or shell history.
+
+A stable repeat reports `SUMMARY changed=0 check=false`. `--check` predicts this script’s supported changes without writing them; it is an explicitly implemented preview, not Ansible check mode. Adapt this lab’s prediction and drift experiment to the Bash artifact before comparing both implementations.
+
 ## Next
 
 [Previous lab](../lab08/README.md) · [Next lab](../lab10/README.md) · [Notes index](../../notes/README.md)

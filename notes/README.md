@@ -18,6 +18,7 @@ Read the concepts in order or follow a question to a worked example. Commands as
 | How do I limit rollout scope? | [Orchestration](orchestration.md) | [Lab 11](../labs/lab11/README.md) |
 | How do I prove it works? | [Testing](testing.md) | [Lab 12](../labs/lab12/README.md) |
 | How do I diagnose a failure? | [Troubleshooting](troubleshooting.md) | [Challenges](../exercises/README.md) |
+| How does the same lesson work in Bash? | [Bash alternatives](bash_alternatives.md) | All twelve labs |
 | What does a term mean? | [Terminology](terminology.md) | [Flashcards](../flashcards/intro.md) |
 | What command do I need? | [Command reference](cheat_sheet.md) | All labs |
 

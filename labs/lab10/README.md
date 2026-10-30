@@ -37,6 +37,20 @@ Record your predicted result, actual recap, observed artifact, and one corrected
 
 Add an observable recovery result and a test asserting both the final file state and the intended exit status.
 
+## Bash alternative
+
+Run [the Bash implementation](alternative.sh) with Bash 3.2+ and standard Unix utilities. It does not require Ansible, Python, jq, or a virtual environment. Follow the [shared Bash guide](../../notes/bash_alternatives.md) for input mappings, change reporting, and boundaries. Its output is separate from the Ansible track.
+
+```bash
+bash labs/lab10/alternative.sh
+COURSE_CANDIDATE_VALID=true bash labs/lab10/alternative.sh
+bash labs/lab10/alternative.sh
+```
+
+Inspect `.sandbox/bash/lab10/live.conf`. The initial version is seeded only when absent. Explicit `if`/`else` branches either promote version 2 or report a handled rejection before promotion. The default repeat retains an existing version 2. `set -e` is not an Ansible rescue block or transaction; the recovery policy must be written explicitly. A handled rejection exits successfully here, matching this lab’s Ansible reference.
+
+A stable repeat reports `SUMMARY changed=0 check=false`. `--check` predicts this script’s supported changes without writing them; it is an explicitly implemented preview, not Ansible check mode. Adapt this lab’s prediction and drift experiment to the Bash artifact before comparing both implementations.
+
 ## Next
 
 [Previous lab](../lab09/README.md) · [Next lab](../lab11/README.md) · [Notes index](../../notes/README.md)

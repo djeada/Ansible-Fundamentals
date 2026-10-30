@@ -36,6 +36,19 @@ Record your predicted result, actual recap, observed artifact, and one corrected
 
 Add one stable fact and one conditional debug task for a platform you can explain.
 
+## Bash alternative
+
+Run [the Bash implementation](alternative.sh) with Bash 3.2+ and standard Unix utilities. It does not require Ansible, Python, jq, or a virtual environment. Follow the [shared Bash guide](../../notes/bash_alternatives.md) for input mappings, change reporting, and boundaries. Its output is separate from the Ansible track.
+
+```bash
+bash labs/lab04/alternative.sh
+bash labs/lab04/alternative.sh
+```
+
+Inspect `.sandbox/bash/lab04/facts.json`. `uname -s` and `uname -m` provide a small set of local facts, and an `if` selects Linux behavior. This is a local probe, not Ansible fact gathering or a fact cache. Keep volatile timestamps out of the managed output.
+
+A stable repeat reports `SUMMARY changed=0 check=false`. `--check` predicts this script’s supported changes without writing them; it is an explicitly implemented preview, not Ansible check mode. Adapt this lab’s prediction and drift experiment to the Bash artifact before comparing both implementations.
+
 ## Next
 
 [Previous lab](../lab03/README.md) · [Next lab](../lab05/README.md) · [Notes index](../../notes/README.md)

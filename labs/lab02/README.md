@@ -44,6 +44,20 @@ Record your predicted result, actual recap, observed artifact, and one corrected
 
 Add a second managed file and explain how its desired content and permissions are represented.
 
+## Bash alternative
+
+Run [the Bash implementation](alternative.sh) with Bash 3.2+ and standard Unix utilities. It does not require Ansible, Python, jq, or a virtual environment. Follow the [shared Bash guide](../../notes/bash_alternatives.md) for input mappings, change reporting, and boundaries. Its output is separate from the Ansible track.
+
+```bash
+bash labs/lab02/alternative.sh --check
+bash labs/lab02/alternative.sh
+bash labs/lab02/alternative.sh
+```
+
+Inspect `.sandbox/bash/lab02/managed.txt`, which contains `Managed by Bash.` and a newline. Edit it, preview the repair with `--check`, and apply it. The shared helper explicitly compares bytes and modes before changing a file; Bash does not supply module-level idempotence automatically.
+
+A stable repeat reports `SUMMARY changed=0 check=false`. `--check` predicts this script’s supported changes without writing them; it is an explicitly implemented preview, not Ansible check mode. Adapt this lab’s prediction and drift experiment to the Bash artifact before comparing both implementations.
+
 ## Next
 
 [Previous lab](../lab01/README.md) · [Next lab](../lab03/README.md) · [Notes index](../../notes/README.md)

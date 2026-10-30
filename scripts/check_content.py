@@ -41,10 +41,10 @@ def main() -> int:
             elif parsed.fragment and dest.suffix == ".md":
                 if unquote(parsed.fragment) not in headings(dest.read_text()):
                     errors.append(f"{path.relative_to(ROOT)}: missing heading {target}")
-    required = ["Before you run", "Predict", "Run", "Observe", "Experiment", "Explain", "Stretch", "Next"]
+    required = ["Before you run", "Predict", "Run", "Observe", "Experiment", "Explain", "Stretch", "Bash alternative", "Next"]
     for number in range(1, 13):
         base = ROOT / "labs" / f"lab{number:02}"
-        for name in ["README.md", "playbook.yml"]:
+        for name in ["README.md", "playbook.yml", "alternative.sh"]:
             if not (base / name).is_file():
                 errors.append(f"Missing {base.relative_to(ROOT) / name}")
         if (base / "README.md").is_file():
